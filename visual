@@ -1,0 +1,273 @@
+
+# 数据集显示
+library(tidyverse)
+ggplot2::diamonds
+glimpse(diamonds)
+str(diamonds) #是glimpse灵感的来源，内容组织略有不同，glimpse会随屏幕调整，str对有序的因子会有呈现
+
+nycflights13::flights
+library(nycflights13)
+glimpse(flights)
+str(flights)
+View(flights) #用独立窗口查看所有信息
+
+##屏幕打印
+flights |> print(n = 5, width = Inf)
+options(tibble.print_min = 6, tibble.width = Inf) # 设置打印参数
+flights
+options(tibble.print_min = NULL, tibble.width = NULL) #恢复缺省值
+flights
+
+##nycflights13数据包
+flights
+airlines
+airports
+planes
+weather
+View(flights) 
+View(airlines)
+View(airports)
+View(planes)
+View(weather)
+
+###飞机的尾号是唯一的吗？
+planes |> pull(tailnum) |> unique() |> length() 
+planes |> nrow() #3322 
+planes |> length() #9  一维用length(),二维用 nrow()
+
+###航班号与飞机尾号有什么关系？
+flights |> glimpse()
+flights |> filter(flight == 1545) |> View()
+
+# 关系连接
+
+##键的概念
+#主键：唯一标记所在数据表观测记录的键
+#外键：唯一标记另一数据表观测记录的键
+#判断方法
+airlines |> count(carrier) |> filter(n > 1) #注意n是count计算的默认变量
+airports |> count(faa, name = 'count') |> filter(count > 1)
+##flights有没有主键？
+flights |> summarise(across(.cols = everything(), 
+                             .fns = ~ n_distinct(.))) |> glimpse()
+flights |> nrow()
+##主键并非单一变量，也可以是多变量的组合
+flights |> count(across(1:11)) |> filter(n > 1) |> glimpse() #前11个变量可联合组成主键
+#主键的变量太多，就失去应用价值了，可以设计一个主键
+flights |> rownames_to_column() 
+
+# 关系连接——合并连接（多表信息组合）
+
+x <- tribble(
+  ~key, ~char_x, ~num_x,
+  1,    'x1',     10,
+  2,    'x2',     20,
+  3,    'x3',     30
+)
+x
+y <- tribble(
+  ~key, ~char_y, ~num_y,
+  1,    'y1',     100,
+  3,    'y3',     300,
+  4,    'y4',     400
+)
+y
+
+inner_join(x, y) #内连接，交运算
+left_join(x, y) #左连接
+right_join(x, y) #右连接
+full_join(x, y) #全连接
+
+right_join(y, x) #相当于 left_join(x, y)。
+#上述inner_join(v1,v2)等4个函数，行列排列上都是以v1变量的结构为主。
+
+#变化1：匹配字段名不同的情形
+(X1 <- x |> rename(key_x = key))
+(Y1 <- y |> rename(key_y = key))
+X1 |> inner_join(Y1) #找不到共同的变量，报错
+X1 |> inner_join(Y1, by = c('key_x' = 'key_y')) 
+  #by中变量的顺序要跟数据集引用顺序一致，多个变量可在c()中依次追加
+
+#变化2：相同字段的后缀处理情形
+X2 <- rename_with(x,
+                  .fn = ~ sub(x = ., pattern = '_x', replacement = ''),
+                  .cols = everything()) #.cols = everything()可省
+X2
+Y2 <- rename_with(y,
+                  .fn = ~ sub(x = ., pattern = '_y', replacement = ''),
+                  .cols = everything()) 
+Y2
+X2 |> inner_join(Y2) #没有匹配的结果，原因是默认情况下按照所有共同的字段来匹配
+X2 |> inner_join(Y2, by = 'key') #同名字段的后缀处理
+X2 |> inner_join(Y2, by = 'key', suffix = c('_1','_2'))
+
+#变化3: 键值重复情形
+(X3 <- bind_rows(x, tibble(key = 3, char_x = 'x3.1', num_x = 31)))
+(Y3 <- bind_rows(y, tibble(key = 3, char_y = 'y3.1', num_y = 310)))
+
+X3 |> inner_join(Y3, by = 'key') #完成了笛卡尔积的运算
+X3 |> left_join(Y3, by = 'key') 
+##有提示信息，若静默该信息，在函数内加入relationship ="many-to-many"
+X3 |> inner_join(Y3, by = 'key', relationship ="many-to-many")
+  ## relationship ="one-to-one"  两边key值要唯一
+  ## relationship ="one-to-many" 左边key值要唯一
+  ## relationship ="many-to-one" 右边key值要唯一
+  ## 以下语句都报错：
+      X3 |> inner_join(Y3, by = 'key', relationship ="one-to-one")
+      X3 |> inner_join(Y3, by = 'key', relationship ="one-to-many")
+      X3 |> inner_join(Y3, by = 'key', relationship ="many-to-one")
+
+
+#实例应用
+flights |> left_join(airlines) |> View()
+flights |> left_join(weather) 
+flights |> left_join(planes) #注意两个表中的year不是一个意思，所以指定一下
+flights |> left_join(planes, by = 'tailnum')
+flights |> left_join(airports, by = c('origin' = 'faa')) #追加出发机场的信息
+flights |> left_join(airports, by = c('dest' = 'faa')) #追加终点机场的信息
+##注意到一个特点：实际操作中，经常用的是left_join，而且，左边一般是放置主要的数据集（有重复记录，提供外键），如果用right_join，正好相反。
+setequal(flights |> left_join(airports, by = c('origin' = 'faa')),
+         airports |> right_join(flights, by = c('faa' = 'origin')) |> 
+           rename(origin = faa)) #TRUE
+
+# 交叉连接——nrow(x) * nrow(y)，交叉连接匹配x中的每一行和y中的每一行
+x
+y
+cross_join(x,y)
+
+# 嵌套连接，nest_join(x,y),对x,y进行左连接，y被折叠起来
+x
+y
+nest_join(x,y)
+nest_join(x,y)$y
+
+# 关系连接--筛选连接
+x
+y
+semi_join(x, y) 
+anti_join(x, y)
+#1.用y中的记录来筛选x
+#2.semi_join保留x中与y相匹配的记录
+#3.anti_join去除x中与y相匹配的记录
+
+#实例应用
+##问题：找出flights中最受欢迎10个目的地的所有航班信息
+#第1步：找出10个目的地
+flights |> count(dest, sort = T) |> slice(1:10)
+##或者
+flights |> count(dest) |> 
+  slice_max(order_by = n, n = 10)
+    ##或者最不受欢迎10个目的地
+    flights |> count(dest) |> 
+      slice_min(n = 10, order_by = n) 
+    flights |> count(dest) |> 
+      slice_min(prop = 0.1, order_by = n) #prop表示比例
+#第2步：筛选航班信息
+flights |> semi_join(flights |> 
+                       count(dest, sort = T) |>
+                       slice(1:10))
+
+
+# 集合运算及追加、合并
+
+## 集合运算
+set.seed(100)
+ssm <- diamonds |> slice_sample(n = 10)
+ssm
+(ssm1 <- ssm |> slice_head(n = 7))
+(ssm2 <- ssm |> slice_tail(n = 6))
+setdiff(ssm1, ssm2) #差集
+ssm1 |> intersect(ssm2) #交集
+ssm1 |> union(ssm2) #并集,会去重
+ssm1 |> union_all(ssm2) #保留重复记录
+
+## 追加与合并
+
+#行名转换
+ssm |> rowid_to_column()
+ssm |> rownames_to_column()
+ssm |> rownames_to_column(var = 'rn') -> ssm1; ssm1
+ssm2 <- ssm1 |> column_to_rownames(var = 'rn'); ssm2
+#信息跟之前的ssm一样，但是行号由灰色变成黑色
+#作用在哪？
+ssm |> slice_sample(n = 5)
+ssm1 |> slice_sample(n = 5)
+ssm2 |> slice_sample(n = 5)
+#可追踪抽样结果
+
+#可赋字符串给行号，但保证唯一性
+ssm |> 
+  mutate(sp = sample(LETTERS, 10)) |> 
+  column_to_rownames(var = 'sp')
+
+#追加/合并行、列
+(sxyz <- ssm |> slice(1:5) |> select(x:z))
+#列----
+#add_column追加列
+sxyz |> add_column(xyz = 1) #默认排在后面
+sxyz |> add_column(xyz = 1:5, .before = 2) #第2列前
+sxyz |> add_column(xyz = 1:5, .after = 2) #第2列后
+
+#bind_cols合并列
+#1. 加向量（变量）
+sxyz |> bind_cols(up = 1:5, down = 5:1)
+
+#2.加数据框
+w <- c(1,7,8,9,3)
+bind_cols(sxyz, tibble(w)) #dplyr中的函数
+add_column(sxyz, tibble(w)) #tibble中的函数
+
+#小结：bind_cols与add_column功能用法几乎一致
+
+#行----
+#add_row追加行
+sxyz |> add_row(x = 1, y = 2, z = 3) 
+sxyz |> add_row(x = c(1:2), y = c(2:3), z = c(3:4)) 
+sxyz |> add_row(x = c(1:2), y = c(2:3), z = c(3:4), .before = 2) #第2行前
+sxyz |> add_row(x = c(1:2), y = c(2:3), z = c(3:4), .after = 2) #第2行后
+
+#bind_rows合并行
+#1. 加向量（变量）
+bind_rows(sxyz, c(x = 1, y = 2, z =3))
+bind_rows(sxyz, x = 1, y = 2, z = 3) #会报错
+add_row(sxyz, x = 1, y = 2, z = 3) #正确
+##bind_rows按组合并，add_row按变量追加
+
+bind_rows(
+  c(a = 1, b = 2),
+  tibble(a = 4:6, b = 7:9),
+  c(a = 10, b = 20)
+)
+
+add_row(
+  c(a = 1, b = 2),
+  tibble(a = 4:6, b = 7:9),
+  c(a = 10, b = 20)
+) #会报错
+
+add_row(
+  tibble(a = 4:6, b = 7:9), #第一个参数需是数据框
+  a = c(1,10), b = c(2,20)
+) #修正
+
+#2.加数据框
+a <- tibble(y = 1, z =2, x = 3)
+add_row(sxyz, a)
+bind_rows(sxyz, a)
+
+#add_row与bind_rows按向量（变量）追加时用法有差异，按数据框追加用法一致
+#总结：add_*与bind_*函数功能一致，但bind_*更高效，add_*选项更多。
+
+##数据可视化esquisse,需安装shiny及plotly
+library(esquisse)
+esquisser()
+
+library(ggplot2)
+ggplot(ggplot2::diamonds) +
+ aes(x = carat, y = price, colour = cut) +
+ geom_point() +
+ scale_color_viridis_d(option = "viridis", 
+ direction = 1) +
+ theme_light() +
+ facet_wrap(vars(clarity), scales = "free_x")
+

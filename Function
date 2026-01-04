@@ -1,0 +1,786 @@
+round(4.56789, 2) #保留小数位
+trunc(4.9999) #截尾取整，向零取整
+trunc(-4.56789)
+ceiling(-4.56)
+ceiling(4.56) #向上取整
+floor(- 4.56)
+floor(4.56) #向下取整
+signif(-4.56789, 4) #保留有效位
+
+exp(3)
+35^2.34
+35**2.34
+log(33)
+log(33, base = exp(1)) #与前同
+log10(33)
+log(33, base = 10) #与前同
+sqrt(55)
+7.416198^2
+sin(1) #正弦
+asin(0.841471) #反正弦
+cos(2) 
+acos(-0.4161468)
+cos(20)
+acos(0.4080821)
+20 %% pi
+tan(1) #正切
+atan(1.557408) #反正切
+
+m <- matrix(runif(20, 1, 10), 4);m
+trunc(m)
+log(m)
+ceiling(m)
+apply(m, 2, ceiling)
+apply(m, 1, ceiling) #apply函数针对数组、矩阵来操作的
+
+apply(m[,1], 1, ceiling) #错误，因为m[,1]是数列不是原先的矩阵m
+apply(m[,1, drop = F],1, ceiling) #保持结构，再用apply计算
+ceiling(m[,1])
+
+# 排序函数
+set.seed(1)
+m <- matrix(runif(20, 1, 10), 4); m
+r1 <- m[,2];r1
+
+order(r1) #排位（确定元素的位置，默认是升序）
+order(r1, decreasing = T) #降序
+order(-r1) #与上同
+rev(order(r1)) #降序
+
+rank(r1) #排名，默认是升序
+rank(r1, decreasing = T) #不可以
+rank(-r1) # 降序
+length(r1) + 1 - rank(r1) #也可以，对不重复数据可行
+rank(c(1,1,1,3,3,5,9,10))
+rank(c(1,1,1,3,3,5,9,10),ties.method = 'average')
+rank(c(1,1,1,3,3,5,9,10),ties.method = 'min')
+rank(c(1,1,1,3,3,5,9,10),ties.method = 'max')
+rank(c(1,1,1,3,3,5,9,10),ties.method = 'first') #最先出现的取最优/最小的序
+rank(c(1,1,1,3,3,5,9,10),ties.method = 'last') #最后出现的取最优/小的序
+rank(c(1,1,1,3,3,5,9,10),ties.method = 'random') #相同数据之间随机排名
+
+r1
+sort(r1) #直接排列
+r1[order(r1)] #与上同
+sort(r1, decreasing = T)
+rev(sort(r1)) #降序
+sort(-r1) #不能用负号来进行降序排列
+
+m
+#order与矩阵的组合运用
+order(m[,2])
+m[order(m[,2]),] #按第2列做升序排序
+m[order(-m[,2]),] #按第2列做降序排序
+
+m[1:3,2] <- m[1,2]; m
+m[order(m[,2],m[,3]),] #order的复合条件，从左到右依次满足
+
+m[order(-m[,2],-m[,3]),]
+m[order(m[,2],m[,3], decreasing = T),]
+m[order(m[,2],-m[,3], decreasing = T),] #升降排序的组合，第二列降序，第三列升序
+
+#按列向进行组合排序
+m[2,1:3] <- m[2,1]; m
+m[,order(m[2,],m[1,])] 
+
+# 函数构造function
+
+add <- function(x, y) x + y
+
+add(1, 2)
+add(1:2, 11:20) #自动实现向量化
+
+geomean <- function(x){
+  prod(x) ^ (1/length(x))
+}
+
+geomean(1:10)
+
+geomean <- function(x){
+  y <- prod(x) ^ (1/length(x)) #仅这个语句，geomean没有正常输出
+  y #补充y才有效
+}
+
+##构造众数函数
+###rstatix::get_mode()
+set.seed(11)
+sp <- sample(1:5, 10, r = T);sp
+tb_sp <- table(sp)
+class(tb_sp)
+typeof(tb_sp)
+names(tb_sp)
+names(which.max(tb_sp))
+names(tb_sp)[which.max(tb_sp)] #与上同
+###唯一性判断
+sum(tb_sp == max(tb_sp)) == 1
+
+mode <- function(x){
+  tb_sp <- table(x)
+  if(sum(tb_sp == max(tb_sp)) == 1)
+    names(which.max(tb_sp))
+  else
+    message('There is no unique mode.')
+}
+
+mode(sp)
+mode(c(1,2,2,4,4,4,3,2))
+mode(c('A','A','B','C'))
+
+###如何区分字符与数值向量
+
+mode <- function(x) {
+  tb_sp <- table(x)
+  if(sum(tb_sp == max(tb_sp)) == 1){
+    if(is.character(x)){
+      names(which.max(tb_sp))
+    }else
+      as.numeric(names(which.max(tb_sp)))
+  }else
+    message('There is no unique mode.')
+}
+
+mode(c(1,2,2,4,4,4,3))
+mode(c('A','A','B','C'))
+mode(1:4)
+
+rstatix::get_mode(c('A','A','B','C'))
+rstatix::get_mode(c(1,2,2,4,4,4,3,2))
+
+##思考：如何构造一个综合型的平均数函数center
+
+center <- function(x, type){
+  switch(type,
+         'mean' = mean(x),
+         'median' = median(x),
+         'geomean' = geomean(x),
+         'mode' = mode(x),
+         'MODE' = rstatix::get_mode(x))    
+}
+
+x <- runif(10)
+x
+center(x, 'mean')
+center(x, 'geomean')
+center(x, 'mode')
+x <- c(1,2,2,4,4,4,3,2)
+center(x, 'MODE')
+rstatix::get_mode(runif(10))
+
+center <- function(x, type){
+  switch(type,
+         mean = mean(x),
+         median = median(x),
+         geomean = geomean(x),
+         mode = mode(x))
+}
+center(x, 'mean')
+center(x, 'geomean')
+center(x, 'mode')
+
+###设置默认参数值
+center <- function(x = 1:10, type = 'mean'){
+  switch(type,
+         mean = mean(x),
+         median = median(x),
+         geomean = geomean(x),
+         mode = mode(x))
+}
+center(x) #默认是求平均值
+center(x, 'geomean') #指定是几何平均数
+center()
+
+##特点:function默认情况下是返回最后一个语句的值
+center <- function(x = 1:10, type = 'mean'){
+  a <- 1
+  switch(type,
+         mean = mean(x),
+         median = median(x),
+         geomean = geomean(x),
+         mode = mode(x))
+  print(a + 2)
+}
+
+center(1:500)
+
+center <- function(x = 1:10, type = 'mean'){
+  a <- 1
+  return(switch(type,   #用return显性指定返回值
+         mean = mean(x),
+         median = median(x),
+         geomean = geomean(x),
+         mode = mode(x)))
+  print(a + 2)
+}
+
+center(1:50)
+
+center <- function(x = 1:10, type = 'mean'){
+  #a <<- 1
+  return(switch(type,   #return后函数结束
+                mean = mean(x),
+                median = median(x),
+                geomean = geomean(x),
+                mode = mode(x)))
+ #a <<- 1
+}
+
+center(1:5)
+
+##函数作为参数的使用方式
+###方式1.
+center <- function(x, type){
+  switch(type,
+         'mean' = mean(x),
+         'median' = median(x),
+         'geomean' = geomean(x),
+         'mode' = mode(x))
+}
+
+center(1:5, type = 'mean')
+center(1:5, type = mean) #不可以，报错
+
+###方式2.
+
+f1 <- match.fun('*')
+f1(2,3)
+f2 <- match.fun('^')
+f2(2,3)
+f3 <- match.fun('log')
+f3(10,3)
+log(10,3)
+
+center <- function(x, type){
+  fun <- match.fun(type) #匹配type的信息，并函数化
+  return(fun(x))
+}
+
+center(1:5, mean)
+center(1:5, geomean)
+center(1:5, 'geomean') #可兼容
+
+
+###方式3.
+center <- function(x, type){
+  return(type(x))
+}
+
+center(1:5,mean)
+center(1:5,sd)
+
+# 统计函数
+
+mean(c(1,2,3,6,8)) #求均值
+mean(c(1,2,3,6,8,NA)) #存在一个未知值
+mean(c(1,2,3,6,8,NA),na.rm = T) #将不确定值去掉后求均值
+na.omit(c(1,2,3,6,8,NA)) #na.omit()函数很有用
+mean(na.omit(c(1,2,3,6,8,NA)))
+mean(1:10,trim = 0.2) #修剪平均值,取[0,0.5]，左边删掉20%，右边删掉20%，之后再取均值
+mean(3:8)
+
+median(c(1,2,3,6,8))
+median(c(1,2,3,6,8,NA))
+median(c(1,2,3,6,8,NA),na.rm = T)
+
+max(1:10)
+min(1:10)
+sum(1:10)
+prod(1:10) #连乘
+
+var(c(1,2,3,6,8)) #样本方差
+var(c(1,2,3,6,8))*(5-1)/5 #总体方差
+a <- c(1,2,3,6,8)
+var(a/(length(a)-1)/length(a))
+sd(c(1,2,3,6,8)) #样本均方差
+(sd(c(1,2,3,6,8))^2*(5-1)/5)^0.5 #总体均方差
+
+cov(1:5,2:6) #协方差，也可以计算矩阵
+cor(1:5,2:6) #相关系数
+cor(1:5,2:6,method = 'pearson')
+cor(1:5,2:6,method = 'spearman')
+cor(1:5,2:6,method = 'kendall') 
+
+a <- matrix(sample(100,20),4,5)
+b <- matrix(sample(100,20),4,5)
+cor(a,b)
+
+quantile(c(1,2,3,6,8,9,10),probs = 0.25) #分位数
+quantile(c(1,2,3,6,8,9,10),probs = seq(0,1,0.25))
+quantile(c(1,2,3,6,8,9,10),probs = 0.75) - quantile(c(1,2,3,6,8,9,10),probs = 0.25)
+IQR(c(1,2,3,6,8,9,10)) #四分位距
+
+#绝对中位差，更具有鲁棒性
+median(abs(c(1,2,3,6,8,9,10) - median(c(1,2,3,6,8,9,10))))
+mad(c(1,2,3,6,8,9,10))
+mad(c(1,2,3,6,8,9,10), constant = 1) # constant缺省情况下，mad的期望值收敛于均方差
+
+#极差
+max(c(1,2,3,6,8,9,10)) - min(c(1,2,3,6,8,9,10))
+range(c(1,2,3,6,8,9,10)) #值域
+range(c(1,2,3,6,8,9,10))[2] - range(c(1,2,3,6,8,9,10))[1]
+diff(range(c(1,2,3,6,8,9,10)))
+diff(c(1,2,3,6,8,9,10)) #依次求差
+diff(c(1,2,3,6,8,9,10),lag = 2) #隔两位求差
+
+diff(range(quantile(c(1,2,3,6,8,9,10),probs = c(0.25,0.75)))) #四分位距
+
+# z-score(标准化预处理方法)
+(c(1,2,3,6,8,9,10) - mean(c(1,2,3,6,8,9,10))) / sd(c(1,2,3,6,8,9,10))
+scale(c(1,2,3,6,8,9,10))
+scale(c(1,2,3,6,8,9,10),center = T, scale = T) # center中心化，scale标准化
+scale(c(1,2,3,6,8,9,10),center = F, scale = T) #这种情形下，scale的值为均方根，非样本均方差
+scale(1:10, center = T, scale = F)
+scale(1:10, center = 3, scale = F)
+scale(1:10, center = 3, scale = 4)
+
+# 极值处理法（0-1）
+a <- c(1,2,3,6,8,9,10)
+(a - min(a)) / diff(range(a))
+
+## 问题：求向量中偶数与奇数的总量及比例
+sm <- sample(100, 50);sm
+sum(sm %% 2 == 0) #偶数的总量
+mean(sm %% 2 == 0) #偶数的比例  #sum(sm %% 2 == 0) / 50
+
+sum(sm %% 2 != 0) #奇数的总量
+mean(sm %% 2 != 0) #奇数的比例  #sum(sm %% 2 != 0) / 50
+
+## 问题：对50个处于[0,100]中的随机数，求所有大于50的数的平均值及占比
+rf <- runif(50, 0, 100)
+mean(rf[rf > 50]) #平均值
+mean(rf > 50) #占比
+
+## 问题：求加权几何平均数
+(data <- read.table('clipboard')) ##mac系统用：readr::read_delim(file = clipboard())
+
+#data <- unlist(data) #释放结构；这个命令可以不要
+#names(data) <- NULL #消除名称，可选
+(rawWeight <- read.table('clipboard'))
+#(rawWeight <- unlist(rawWeight))
+prod(data ^ (rawWeight/sum(rawWeight)))
+
+
+#tibble(data.frame的新发展)
+
+library('tibble')
+data(iris)
+iris
+head(iris, 9)
+tail(iris)
+class(iris)
+str(iris)
+
+as_tibble(iris)
+
+tb1 <- tibble(x = 1:5, y = sample(10, 5), z = x^2 + y*3);tb1
+
+tribble(
+  ~x,~y,~z,
+ #/-/-/-/
+  1,2,3,
+  4,5,6
+)
+
+a <- tibble(name = character(0), score = numeric(0))
+class(a)
+a
+edit(a) #出现编辑器进行编辑
+a
+a <- edit(a) #要及时赋值
+fix(a) #等价于上面的edit()与赋值，并直接保存
+a
+
+mydata1 <- '
+name gender score
+John M 80
+Kate F 87
+'
+b <- read.table(text = mydata1, header = T)
+b
+
+mydata2 <- '
+name,gender,score
+张三,男,80
+李红,女,87
+'
+c <- read.table(text = mydata2, header = T, sep = ',')
+c
+
+class(a)
+class(b)
+class(c) 
+##a,b,c都是数据框形式
+##需要通过转换才能构建tibble
+as_tibble(a)
+as_tibble(b)
+
+##tibble与data.frame的区别
+###1.tibble构建时就可直接使用新变量
+data.frame(x = 1:5, y = sample(10, 5), z = x^2 + y*3) #不允许
+
+###2.tibble中可以直接容纳list结构
+data.frame(x = 1:3, y = list(1,2,3)) #跟预期不同
+tibble(x = 1:3, y = list(1,2,3)) #跟预期同
+View(tibble(x = 1:3, y = list(1,2,3)))# 与View(tibble(x = 1:3, y = c(1,2,3)))显示相同，内在结构不同
+tibble(x = 1:3, y = list(1,2,3), z = x+y) #不能相加
+tibble(x = 1:3, y = c(1,2,3), z = x+y) # 可以相加
+####拓展
+tb2 <- tibble(x = 1:4, y = list(1:10, list(1:20, 4), matrix(1:20,4), tb1));tb2
+View(tb2)
+#####提取matrix
+tb2$y[[3]]
+apply(tb2$y[[3]], 2, mean)
+
+####对list内部元素命名
+tb3 <- tibble(x = 1:4, y = list(a = 1:10, b = list(1:20, 4), c = matrix(1:20,4), d = tb1));tb3
+
+##将前述课程的models及l4放置到
+
+
+######提取matrix
+tb3$y$c
+####总结：除了要求各列元素相同之外，tibble拥有与list相同的兼容性
+
+###3.tibble不会直接将字符型的变量转化为因子；R4.0.0后的data.frame也采用了这个特征
+
+###4.tibble避免了df[,1:2]为data.frame类型，df[,1]为向量类型的不确定性
+data(iris)
+class(iris[,1:2])
+class(iris[,1])
+
+iris <- as_tibble(iris)
+class(iris[,1:2])
+class(iris[,1])
+
+###5.tibble构建时对循环的限定更严格
+data.frame(x = 1:2, y = 1:10) #自动拓展维度
+tibble(x = 1:2, y = 1:10) #不允许
+tibble(x = 1, y = 1:10) #这种情况是允许的
+
+
+# 数据框及因子处理常用函数
+set.seed(1)
+df <- data.frame(
+  c1 = 1:10,
+  c2 = 21:30,
+  c3 = sample(LETTERS[1:3], 10, r = T),
+  c4 = as.character(sample(1:3, 10, r = T))
+)
+df
+str(df)
+
+apply(df[1:2], 2, mean) #每列的处理，df[1:2]与df[,1:2]同为数据框形式
+apply(df[,1:2], 2, quantile, probs = c(0.25, 0.75))
+apply(df[,1:2], 2, summary) #概要函数，可用于矩阵，summary(matrix(1:24, 4))
+
+## 分组函数(将函数应用于按因子分割的数据框/变量中)
+by1 <- by(data = df$c1, INDICES = df$c3, FUN = mean);by1 #（操作对象，类型指标，动作)
+class(by1) #并不能实际描述by1的性质
+names(by1)
+as.vector(by1) #这里，与as.numeric(by1)等同
+data.frame(name = names(by1), mean = as.vector(by1))
+
+by2 <- by(data = df$c1, INDICES = df$c3, FUN = quantile, probs = c(0.25, 0.75));by2
+names(by2)
+as.matrix(by2) #无效
+class(as.matrix(by2))
+as.vector(by2) #无效
+class(as.vector(by2))
+purrr::as_vector(by2)
+
+by3 <- by(data = df$c1, INDICES = df$c3, FUN = summary);by3
+by3[1]
+mean(by3[1]) #不可以，但range(by3[1])可以，每个函数适应的数据类型不同，mean是具有代表性
+mean(by3[[1]])
+mean(by3$A)
+
+##问题：如何对by2，by3格式化
+
+## by的拓展使用:分组拟合
+###方式1
+head(iris)
+lm(Sepal.Length ~ Petal.Length, data = iris)
+model <- lm(data = iris, Sepal.Length ~ Petal.Length) 
+summary(models$setosa)
+unique(iris$Species)
+
+models <-
+  by(data = iris, 
+     INDICES = iris$Species, 
+     function(x) lm(Sepal.Length ~ Petal.Length, data = x)
+  )
+###抽取信息
+ls <- list(x = 1:10, y = 100:150)
+ls
+lapply(ls, quantile)
+
+lapply(models, coef) #输出为列表
+lapply(models, residuals)
+
+sapply(models, coef) #输出为矩阵
+sapply(models, residuals) 
+class(sapply(models, coef))
+
+###显性看公式
+ggiraphExtra::ggPredict(model,interactive = T, se = T)
+ggiraphExtra::ggPredict(models[[2]],interactive = T, se = T)
+
+###方式2：split函数 
+(split_iris <- split(iris, f = iris$Species))
+View(split_iris)
+models1 <- 
+  lapply(split_iris, 
+         function(x) lm(Sepal.Length ~ Petal.Length, data = x))
+models1
+lapply(models1, coef)
+lapply(models1, residuals)
+sapply(models1, coef)
+sapply(models1, residuals) 
+as.data.frame(sapply(models1, residuals)) #转成data.frame
+
+###前述问题回答
+(by_m <- sapply(by3, function(x) x))
+(m_df <- as.data.frame(by_m))
+m_df$D <- row.names(m_df)
+m_df
+row.names(m_df) <- NULL
+m_df
+###或者tibble::rownames_to_column(m_df,var = '新列')
+
+## 简化df的输入
+head(iris)
+attach(iris) # 将变量添加到搜索路径中
+by4 <- by(Sepal.Length, Species, mean) #直接用会报错是因为目前只是变量中的列名，因此需要提前用attach
+plot(by4) #以图形方式显示by4变量
+plot(iris)
+by5 <- by(Sepal.Length, Species, quantile)
+by5
+plot(x = by5[[1]], y = by5[[2]])
+detach(iris)
+
+iris <- 2
+attach(iris)
+by4 <- by(Sepal.Length, Species, mean)
+detach(iris) #若之前定义了iris，无法执行
+
+### 用with，with反馈结果是最后一个语句的结果
+data(iris)
+with(data = iris,expr = by(Sepal.Length, Species, mean))
+with(data = iris,{
+  by4 <- by(Sepal.Length, Species, mean)
+  plot(by4)
+  by5 <- by(Sepal.Length, Species, quantile)
+  by5
+  plot(x = by5[[1]], y = by5[[2]])
+}) 
+
+b <-
+  with(iris, {
+    a <- Sepal.Length[1:3]
+    a
+  })
+b
+a + 1 # a仅在with中有效
+
+with(iris,{
+  a <<- Sepal.Length[1:3];a
+})
+a + 1 # “<<-”的定义超过了{的界限，保证a在with之外可用
+
+b <- with(iris,{
+  Sepal.Length <- factor(Sepal.Length)
+  Sepal.Width <<- 1
+  Sepal.Width
+  str(iris)
+  Sepal.Length
+}) #对iris修改无效，中间有些内容无法打印出来，返回的结果是最后一个语句的内容
+str(iris)
+b
+
+with(iris, by(Sepal.Length, Species, quantile))
+with(iris, {by(Sepal.Length, Species, quantile); c(1,2,3)})
+with(iris, {
+  by(Sepal.Length, Species, quantile)
+  c(1, 2, 3)
+})  # ctrl+shift+A ,美化代码
+
+###保留数据框的修改结果，用within函数
+within(iris, {
+  Sepal.Width <- 1
+  Sepal.Length <- 2
+}) #修改但未更新变量
+iris <- within(iris, {
+  Sepal.Width <- 1
+  Sepal.Length <- 2
+}) #赋值更新变量
+head(iris)
+
+#小结：对于with，求出的expr的值。对于within，是修改后的对象。
+
+##取子集，subset函数
+subset(x = df, subset = (c1 >= 3 & c1 <= 8) & (c2 >= 25 & c2 <= 29) & (c3 %in% c('B','C')))
+subset(x = df, subset = (c1 >= 3 & c1 <= 8) & (c2 >= 25 & c1 <= 29) & (c3 %in% c('B', 'C')), select = -c4) #把第4列排除
+subset(x = df, subset = (c1 >= 3 & c1 <= 8) & (c2 >= 25 & c1 <= 29) & (c3 %in% c('B', 'C')), select = c(T,F,T,F)) #把第2,4列排除
+df[(c1 >= 3 & c1 <= 8) & (c2 >= 25 & c2 <= 29) & (c3 %in% c('B','C')), -4] #问题语句
+df[(df$c1 >= 3 & df$c1 <= 8) & (df$c2 >= 25 & df$c2 <= 29) & (df$c3 %in% c('B','C')), -4] #正确的，但很繁琐
+with(df, df[(c1 >= 3 &
+               c1 <= 8) & (c2 >= 25 & c2 <= 29) & (c3 %in% c('B', 'C')),-4])
+#within可以吗？
+within(df, df[(c1 >= 3 &
+               c1 <= 8) & (c2 >= 25 & c2 <= 29) & (c3 %in% c('B', 'C')),-4]) #返回的是df全体，不是子集
+
+# 因子型计算效率更高
+# 因子相关的常用函数
+set.seed(12)
+c1 <- 1:10
+c2 <- sample(1:100, 10)
+c3 <- sample(LETTERS[1:3], 10, r = T)
+df <- data.frame(c1, c2, c3);df #这种构建可以直接将变量名作为列名
+str(df)
+df$c3 <- factor(df$c3)
+str(df)
+
+## reorder因子水平重拍
+
+with(df, reorder(x = c3, X = c2, FUN = mean)) #根据某分类变量x分组，计算某FUN下的X值，对x变量的levels进行重拍
+df$c3 <- with(df, reorder(x = c3, X = c2, FUN = mean));str(df)
+df <- within(df, c3 <- reorder(x = c3, X = c2, FUN = mean));str(df)
+
+### 简单应用
+plot(x = df$c3, col = df$c3)
+df$c3 <- reorder(x = df$c3, X = df$c3, length)
+plot(x = df$c3, col = df$c3)
+palette()
+palette.pals()
+palette("Tableau 10") #更改调色板，再用plot命令可以改颜色
+palette("Pastel 1")
+palette("default")
+
+###如何降序排列
+####1 反序
+df$c3 <- factor(df$c3, levels = rev(levels(df$c3)));str(df) #要与前面升序排列的语句配合使用
+####2 以下降序
+df <- within(df, c3 <- reorder(c3, -c2, mean)); str(df)
+####3 
+df <- within(df, c3 <- reorder(c3, c2, function(x) -mean(x))); str(df)
+####4
+df <- within(df, c3 <- reorder(c3, c2, decreasing = T)); str(df) #推荐
+
+##gl因子水平生成函数
+fc <- gl(n = 2, k = 4, length = 6)
+levels(fc) <- c('low','high')
+fc
+
+fc <- gl(n = 2, k = 4, length = 10, labels = c('low','high'));fc
+###自己发生
+factor(sample(1:3, 10, r= T), levels = c(3,2,1), labels = c('high','middle','low')) 
+
+##cut函数
+set.seed(1)
+a <- sample(1:20, 10)
+a
+cut(a,4) #快速切3份,breaks可为单值或向量
+cut(a, breaks = c(1, 4, 16, 20)) #默认的左开右闭
+cut(a, breaks = c(1, 4, 16, Inf)) #把上限换成无穷大
+cut(a, breaks = c(-Inf, 4, 16, Inf)) #把上下限都变成无穷大
+cut(a, breaks = c(1, 4, 16, 20), include.lowest = T) #包括最小值
+cut(a, breaks = c(1, 4, 16, 20), right = F) #右端点默认闭合，F打开
+cut(a, breaks = c(1, 4, 16, 20), 
+    include.lowest = T, 
+    right = F, 
+    labels = c('small','medium','large'),
+    ordered = T) #注意这个输入，全名为ordered_result
+###cut输出的结果是因子
+
+
+###pretty创建分割点
+pretty(x = 1:10, n = 5)
+pretty(x = runif(10), 7) #出来的数据不一定是n+1个
+
+###与cut结合使用
+cut(a, breaks = pretty(a, 4))
+
+
+### 强调一下：因子的意义（R中原生支持的数据类型）
+#### 1.过滤信息
+factor(c(1,2,3,5,1000,10000), levels = 1:5)
+#### 2.建模与可视化不可或缺
+#### 3.数据处理中更是不可缺少
+#### 4.大数据情境节省资源，提高运算效率，比字符向量高数倍
+
+
+### 拓展：因子的处理函数
+library(forcats)
+
+fct_c(factor(1:3), factor(c(5:7,3:6))) #合并因子
+## 改变顺序
+f <- factor(c("d","a", "c", "b","b","a", "d","a","a","d"), 
+            levels = c("b", "c", "d", "a"))
+f
+fct_relevel(f) #按levels顺序
+fct_relevel(f,'a') #置前
+fct_relevel(f, "b", "a") #置前
+fct_relevel(f, "d", after = 1) #指定位置
+fct_relevel(f, "d","a", after = Inf) #最后
+fct_relevel(f, rev) #用函数，无参数名
+fct_relevel(f, sort) #字母顺序
+fct_relevel(f, sample) #随机
+
+fct_count(f)
+table(f) #类似
+fct_count(f,sort = T, prop = T)#统计频率、占比及排序
+
+fct_inorder(f) #按水平值出现的先后顺序，与fct_relevel(f)不同
+fct_infreq(f) #按频率从高到底排
+fct_rev(f) #反转水平，与fct_relevel(f, rev)同
+fct_reorder(.f = f,.x = f,.fun = length) #与fct_rev(fct_infreq(f))同
+fct_reorder(.f = f,.x = f,.fun = length, .desc = T) #默认升序，desc = T降序
+
+fct_reorder(.f = f,.x = 10:1,.fun = mean, .desc = T) #可以根据其他量的计算调整因子
+  ##验证with(data.frame(f = f, x = 10:1),by(x,f,mean))
+
+fct_recode(f, notab = 'c')
+fct_recode(f, 'not&ab' = 'c') #有特殊字符要用单引号或双引号
+fct_recode(f, "not&'ab" = 'c') #若有单引号，要用双引号
+fct_recode(f, 'nota&b' = 'c', 'nota&b' = 'd') 
+fct_collapse(f, 
+             a_b = c('a','b'),
+             notabc = c('d'),
+             other = 'c') #折叠到手动定义的组里
+
+## 频数较小的进行合并
+fct_lump_n(f,n = 2) #留出n个，其余都折叠，可用other_level = '其他'指定名称
+fct_lump_prop(f, prop = 0.2) #低于的比例折叠，等于也折叠
+fct_lump_min(f, min = 2) #低于的数量折叠，等于不折叠
+fct_lump_lowfreq(f) #自动选择
+
+##例子
+data(mpg, package = 'ggplot2')
+str(mpg)
+View(mpg)
+unique(mpg$class)
+
+fct_count(mpg$class, sort = T, prop = T)
+fct_lump_lowfreq(mpg$class)
+###可用table快速查询
+table(mpg$class)
+table(fct_lump_lowfreq(mpg$class))
+
+fct_lump_n(mpg$class, n = 3)
+rev(sort(table(fct_lump_n(mpg$class, n = 3))))
+fct_count(fct_lump_n(mpg$class, n = 3),sort = T, prop = T)
+
+fct_lump_min(mpg$class, min = 33)
+fct_lump_prop(mpg$class, prop = 0.142)
+
+##增删
+f1 <- factor(c('a','b','c','c'), levels = letters[1:6]);f1
+fct_drop(f1) #无效的水平被移除
+fct_drop(f1, only = c('e','d')) #仅移除指定的水平
+fct_drop(f1, only = c('a','e','d')) #有值的不会移除
+fct_expand(f1, 'w','y') #添加新的水平
+##为NA进行处理
+f2 <- factor(c('a','b','c','c','k','m'), levels = letters[1:6]);f2
+fct_na_value_to_level(f2, level = '未知')
+
+##对因子匿名处理
+fct_anon(f, prefix = '***')  #前缀后连续处理

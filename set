@@ -1,0 +1,1125 @@
+
+#集合运算
+
+v <- 1:15
+m <- matrix(1:20, nrow = 4)
+a <- array(1:24, dim = c(2,3,4))
+
+intersect(a, m) #交集
+union(a, m) #并集
+setdiff(a, m) #差
+setdiff(m, a) #空缺值，注意integer(0)这种形式
+setequal(a, m)
+setequal(a, c(m, 21:24,1:5)) #c(m, 21:24)会将矩阵拉平为向量
+    #集合运算不要求变量一致，而是元素组成相同
+
+m %in% v #%in%成员运算符，返回是真假判断值，判断前面集合的元素是否在后面的集合中，形成逻辑值
+v %in% m 
+a %in% m
+string <- c('A','K','%','B','##','c',NA,'~~','@','W','a','BBL');string
+string %in% c(letters, LETTERS)
+string[string %in% c(letters, LETTERS)]
+string[!(string %in% c(letters, LETTERS))]#取反
+setdiff(string,string[string %in% c(letters, LETTERS)])#取反
+
+which(c(T,F,T,F,F,T)) #定位Ture的位置
+which(string %in% c(letters, LETTERS)) 
+
+string[-which(string %in% c(letters, LETTERS))] #取反
+
+m <- matrix(1:15, 3, byrow = T);m
+div3 <- (m %% 3 == 0);div3
+which(div3)
+which(div3, arr.ind = T) # arr.ind 为数组索引开关，默认为FALSE,对矩阵，输出为2列矩阵
+
+a <- array(1:24, c(2,3,4)); a
+which(a %% 3 == 0, arr.ind = T) #对n维数组，输出为n列矩阵
+
+
+which.max(a) #定位最大值的位置，无arr.ind参数
+which.min(a)
+
+##用which替代which.max的方法
+which(a == max(a))
+#max(a) == a 这个语句可以，不规范，a放前面
+which(a %in% max(a)) #这个也可以
+
+match(c(1,6,9,45,22), 20:1) #返回的匹配的位置，对于没有匹配的值默认做NA处理
+match(c(1,6,9,45,22), 20:1, nomatch = 99) # 可以将未匹配的设置一个指定的值
+match(c(8,11,33,9), c(1:10,7:30)) #如果有多个匹配，按第一个匹配的位置输出
+
+#%in%与match函数的关系
+match(c(1,6,9,45,22), 20:1, nomatch = 0) > 0 
+c(1,6,9,45,22) %in% 20:1
+
+xin <- function(x,y) {match(x, y, nomatch = 0) > 0}
+xin(c(1,6,9,45,22), 20:1)
+
+#总结：集合运算的结果绝大部分都是向量的形式（因为类似集合）
+
+
+
+#字符处理函数
+
+str <- c('abcdeABc89339', '美丽的长城', '2ab美丽9180aBcfajdsaf', 'abcde', 'ABcDE'); str
+nchar(str) #字符数量
+substr(x = str,start = 2, stop = 4) #提取子串
+substr(x = str,start = 2, stop = 10) 
+substr(str, 2, 4) <- '888' #替换功能(不需要再对str赋值)
+str
+
+grep(pattern = 'ab', x = str) #寻找与定位匹配模式或字符串的位置
+grep(pattern = 'ab', x = str, fixed = F) #查找包含ab的，仅小写
+grep(pattern = 'Ab', x = str, fixed = F,ignore.case = T) #ignore.case = T在 fixed = F情形下有效，此时就不会限制字母大小写的具体形式
+grep(pattern = '^a', x = str, fixed = F) #查找以a开头的
+grep(pattern = 'e$', x = str, fixed = F) #查找以e结尾的
+grep(pattern = 'e$', x = str, fixed = F,ignore.case = T)
+grep(pattern = 'e$', x = str, fixed = F,ignore.case = T,invert = T) #反取，筛选出满足条件以外的词组
+grepl(pattern = 'e$', x = str, fixed = F,ignore.case = T) #用逻辑值表示是否符合条件
+str[grepl(pattern = 'e$', x = str, fixed = F,ignore.case = T)] #提取满足逻辑条件的字符串
+str[!grepl(pattern = 'e$', x = str, fixed = F,ignore.case = T)] ##反取（前面加了感叹号）
+setdiff(str,str[grepl(pattern = 'e$', x = str, fixed = F,ignore.case = T)])
+
+sub(pattern = 'abc', replacement = 'ABC', x = str, fixed = T) #搜索并替换，但是注意需要赋值操作后才能更新变量，这点与substr有别
+sub(pattern = 'abc', replacement = 'ABC', x = str, fixed = F,ignore.case = T) #只替换每一字符串第一个匹配的地方
+gsub(pattern = 'abc', replacement = 'ABC', x = str, fixed = F,ignore.case = T) #匹配所有
+str
+str <- sub(pattern = 'abc', replacement = 'ABC', x = str, fixed = T);str
+
+strsplit(x = str, split = "",fixed = T) #分割字符向量，生成列表
+strsplit(x = str, split = 'b',fixed = T) #从b的位置分开并删除b
+unlist(strsplit(x = str, split = 'b',fixed = T)) #消除列表结构，转化成向量形式
+
+paste('x','y',sep = '')
+paste('x', 1:10) #连接字符串
+paste('x', 1:10, sep = '') # sep默认情况是一个空格，将原先合并后出现的空格去掉
+paste('x', 1:10, sep = '/')
+paste('x','y','z','m','n') #合并成一个元素
+paste('x','y','z','m','n',1:10)
+paste('x','y','z','m','n',1:10, collapse = ';', sep = '') #坍塌向量并设定分割字符，所有的数据压缩成一个字符串
+length(paste('x','y','z','m','n',1:10))
+length(paste('x','y','z','m','n',1:10, collapse = ';', sep = ''))
+paste0('x','y')
+
+toupper(str) #大写转换
+tolower(str) #小写转换
+
+#提取匹配字符
+string <- c("A@@22and33 B", "A, B++44and C", "A,拟合555B, C和D", "足球foobar")
+## 定位
+mat <- regexpr(text = string, pattern = '\\d+') #不匹配的做-1处理，regexpr找到位置，确定步长，比grep更细致
+gmat <- gregexpr(text = string, pattern = '\\d+')
+mean(mat)
+## 提取
+regmatches(x = string, m = mat)
+regmatches(x = string, m = gmat)
+
+## 替换
+regmatches(x = string, m = gmat) <- 888
+string
+
+# 常用随机数及抽样
+runif(n = 20, min = 0, max = 100) #0-100之间均匀分布
+set.seed(123456789) #设置随机数种子库，括号内相当于密码，没有实际影响，只要两方输入同一组数即为同一个种子库
+runif(20) #默认随机数均匀分布，挨着种子库输入命令即为由种子库生成的随机均匀分布，若单独输则为其他种子库生成
+rf <- runif(20, 0, 100);rf
+
+rnorm(30) #随机正态分布
+rnorm(n= 30, mean = 0, sd = 1) #标准正态分布
+rnorm(30,15,10) #正态分布
+
+#对数据随机抽样
+sample(x = 1:20, size = 10, replace = FALSE) #不放回抽样
+sample(x = 1:20, size = 20, replace = TRUE) #放回抽样
+#对人数进行抽样
+sample(c('John','Sam','Peter','Kate'),3) #抽三个
+sample(100,50) #简略写法，默认从1开始，即1-100随机抽50个数
+
+
+# 数据框
+
+matrix(1:16, 4)
+matrix(sample(c('a','b','c','d'), 20 ,r = T), 4)
+matrix(sample(c(T,F), 20, r = T), 4)
+m <- diag(4)
+dimnames(m) <- list(letters[1:4], LETTERS[1:4]);m
+
+df <- data.frame(c(1:8, 11, 15), LETTERS[1:10], sample(c(T,F), 10, r = T));df
+
+##列名
+colnames(df) <- c('c1','c2','c3');df
+names(df) 
+names(df) <- c('A','B','C');df #与colnames同
+names(df)[2] <- 'BB';df
+
+##行名
+rownames(df)
+rownames(df) <- letters[1:10];df
+row.names(df) #作用与上同
+
+##行列名
+dimnames(df) #是个list
+class(dimnames(df))
+dimnames(df)[1] #出来的结果不是向量
+dimnames(df)[[2]] #出来的结果是向量
+###修改行列名的两种方式
+###1. 用list结构
+dimnames(df)[2] <- list(LETTERS[26:24]); df
+###2. 用[[]],在向量层修改
+dimnames(df)[[2]] <- LETTERS[1:3]; df
+
+##数据框构建时指定名称
+df <- data.frame(X = c(1:8, 11, 15), Y = LETTERS[1:10], Z = sample(c(T,F), 10, r = T));df
+df <- data.frame('X' = c(1:8, 11, 15), 'Y' = LETTERS[1:10], 'Z' = sample(c(T,F), 10, r = T));df  #与上同
+data.frame(c1 = 1:10, c2 = 11:20, c3 = 30:21, row.names = 10:1)
+dimnames(data.frame(c1 = 1:10, c2 = 11:20, c3 = 30:21, row.names = 10:1))
+data.frame(1:10, 11:20, 30:21, 
+           dimnames = list(10:1,c('c1','c2','c3'))
+           ) # 这种方式不可以，体现了数组与数据框对数据的态度不同。数组是一体化的，数据框是变量化的
+
+##三个函数
+nrow(df) #统计行数
+ncol(df) #统计列数
+length(df) #与ncol同
+
+##引用
+df[2, 3] #取一个数，方式与矩阵同
+df[1] #取列，数据框
+class(df[1])
+df[,1] #取列，向量
+class(df[,1])
+df$X #取列，向量，最常用的方式
+df[[1]] #取列，向量
+#如果是向量，mean(df[[1]])可以直接计算，如果是数据框，mean(df[1])不能直接计算
+df[,1:2]#多列，数据框
+df[,-3]#多列，数据框
+df[1,] #取行，数据框
+df[c(2,5),]
+df[-c(2,5),]
+
+##添加列
+df
+df$W <- letters[1:10];df
+df$Q <- sample(LETTERS, 10);df
+
+##对于较长的数据，建议的书写
+df <- data.frame(
+  c1 = 1:10,
+  c2 = 11:20,
+  c3 = 30:21,
+  c4 = letters[1:20],
+  c5 = sample(LETTERS[1:4], 10, r = T)
+ )
+df
+str(df) #特征：在R4.0.0以前的版本，初次定义data.frame时字符型的变量都自动转化为factor
+version #系统信息
+
+##因子（factor）
+data()  #data(package = .packages(all.available = TRUE))
+iris #鸢尾花数据集
+tibble::as.tibble(iris)
+head(iris,6)
+View(iris)
+str(iris)
+
+char <- sample(LETTERS[1:4], 10, r = T);char
+charFc <- factor(char);charFc
+class(charFc) #变量类型
+typeof(charFc) #数据类型
+as.integer(iris$Species) #底层为整型向量
+
+fac <- factor(c('bed','car','apple','zoo','moon','car','bed'));fac #默认按字母顺序给出levels的值
+as.integer(fac) 
+
+###自定顺序
+fac <- factor(
+  x = c('bed','car','apple','zoo','moon','car','bed'),
+  levels = c('zoo','car','apple','bed','moon')
+  )
+fac
+str(fac)
+
+uniq <- unique(c('bed','car','apple','zoo','moon','car','bed')) ###按首次出现的顺序
+fac <- factor(
+  x = c('bed','car','apple','zoo','moon','car','bed'),
+  levels = uniq
+)
+fac
+
+fac[2]
+fac[4]
+fac[2] > fac[4]
+
+#设置排序
+fac <- factor(
+  c('高中','博士','硕士','本科','本科','硕士','博士'),
+  levels = c('高中','本科','硕士','博士'),
+  ordered = T  #默认是F
+)
+fac[1]
+fac[5]
+fac[1] < fac[5]
+
+#设置编码
+df <- data.frame(sex = sample(1:2, 10, r = T), score = sample(60:100, 10));df
+str(df)
+df$sex <- factor(df$sex, levels = c(2,1), labels = c('Male', 'Female')); df
+str(df)
+
+
+## 内置的数据集datasets绝大部分是data.frame形式
+data()
+## 数据集的显性引用
+data(iris) #调取数据
+iris$Sepal.Length <- 1;iris #修改后会保留修改信息
+data(iris) #重新载入数据集，iris变量被重置为datasets里的原有信息
+iris #可以初始使用时直接调用，但不显性呈现
+iris[1] <- 1 #出现显性变量
+ir1 <- iris #构建新变量
+
+##筛选与排序
+data(iris)
+range(iris[1:4])
+apply(iris[1:4], 2, range)
+
+iris[iris$Sepal.Length > 5,]
+iris[iris$Sepal.Length > 5 & iris$Sepal.Length < 5.5,]
+nrow(iris[iris$Sepal.Length > 5 & iris$Sepal.Length < 5.5,])
+
+iris1 <- iris[iris$Sepal.Length > 5 & iris$Sepal.Length < 5.5,]
+
+order(iris1$Sepal.Length)
+iris1[order(iris1$Sepal.Length),]
+###对iris1按Sepal.Length升序，其他变量降序来重拍
+iris1[order(iris1$Sepal.Length,
+            -iris1$Sepal.Width,
+            -iris1$Petal.Length,
+            -iris1$Petal.Width
+            ),]
+iris1[order(-iris1$Sepal.Length,
+            iris1$Sepal.Width,
+            iris1$Petal.Length,
+            iris1$Petal.Width,
+            decreasing = T
+),]
+
+
+# 向量的基本计算与条件定位
+
+v1 <- 1:5;v1
+v2 <- sample(10,5);v2
+v1 + v2
+v1 - v2
+v1 * v2
+v1/v2
+v1 + 2
+v1*2
+v1/2
+
+v1 <- 1:10
+v1 + v2
+v2
+v1 <- 1:11
+v1 + v2
+
+v1 ^ 2
+v1 <- 1:5
+v1 ^ v2
+
+c(T,F,F) -> log1 #定义逻辑值向量
+c(F,F,F) -> log2
+log1 | log2 #or运算，一个true就是true
+log1 & log2 #and运算，两个都是true才是true，只有一个true就是fulse
+!log1 #逻辑翻转，true和fulse互换
+!!log1 #再翻回来
+log1 || log2 #只计算第一个元素，这个命令会报错
+T || log2 #只有这个能运行，结果为T
+log1 && log2 #只计算第一个元素  
+    ##1.不同于|与&，||与&&为值运算，新版本已不兼容向量形式
+    ##2.只考虑左边的逻辑值（非向量）。||左为真，结果为真，&&左为假，结果为假
+
+xor(log1,log2) #相异为真，相同为假
+
+all(log1) #聚合运算，进去多个出来一个
+any(log1)  
+
+set.seed()
+(rf <- runif(10))
+rf > 0.5 #判断是否大于0.5
+rf[rf > 0.5] #[]为运算符，让rf变量抽取上一个运算结果，即过滤掉不满足的数
+rf > 0.2 & rf < 0.6 # 等价于 (rf > 0.2) & (rf < 0.6)，取大于0.2小于0.6的数
+!((rf > 0.2) & (rf < 0.6)) # 取0.2-0.6之间的数，即取上一个的反
+rf[rf > 0.2 & rf < 0.6]
+rf[rf <= 0.2 | rf >= 0.6]
+
+v3 1:10
+v3[rf > 0.5] #按照rf的逻辑抽取，即将对应true位置的抽取出来
+v3 <- 1:20
+v3[rf > 0.5]
+v3 <- 1:15
+v3[rf > 0.5]
+v3 <- 1:5
+v3[rf > 0.5] #经常会出现空缺值
+
+1:100
+(1:100)/2
+1:100 %% 2 # %%是取余运算，即1-100个数分别除以2，取余数
+1:100 %/% 2 # %/%是取模运算，取商的最大整数位（向下取整）
+
+#问题：如何抽取一组随机整数中的偶数或奇数？
+sample(1:200,50) -> sm
+sm #显示一下变量sm
+sm %% 2 == 0
+sm[sm %% 2 == 0]
+sm[sm %% 2 != 0]
+
+
+# 数据操作dplyr包(在tidyverse集成包中)
+library(tidyverse)
+
+##准备数据集
+ggplot2::diamonds
+set.seed(10)
+sm <- diamonds[sample(nrow(diamonds), 1000),]; sm
+
+##筛选行----
+sm |> filter(carat > 0.5)
+sm$color |> unique()
+sm |> filter(carat >0.5 & price > 1500 & color %in% c('H','E','G'))
+sm |> filter(carat >0.5, price > 1500, color %in% c('H','E','G')) #用上同，逗号实现逻辑与
+sm |> filter(carat > 12 | carat < 0.5) # 逻辑或
+
+##基于索引slice----
+sm |> slice(1:4)
+sm |> slice(1:4, 3, 6:5)
+sm |> slice(c(1:4, 3, 6:5))#与上同
+sm |> head()
+sm |> head(n = 10)
+sm |> tail()
+sm |> tail(1)
+sm |> slice(n()) # 最后一个元素
+sm |> slice(n():(n()-2)) #从最后一个元素到倒数第三个
+sm |> slice((n()-2):n())
+sm |> tail(3)
+sm |> slice(-5:-n()) # - 为排除 与slice(sm, 1:4)同
+sm |> slice(-(5:n())) # 与上同
+
+sm |> filter(1:3) # 不可以直接跟索引值，filter需要逻辑值
+sm |> filter(n()) # 不可以直接用
+sm |> filter(row_number() == n())
+sm |> filter(row_number() == 3)
+sm |> filter(row_number() == 3L) #3L更规范
+sm |> filter(row_number() %in% 1:3) # 离散型
+sm |> filter(between(row_number(), 1, 3)) #结果与上同，但是可处理连续型的变量
+sm |> filter(between(carat, 2.1, 3)) 
+
+##上述几个函数单独使用
+r <- c(2,3,8,4,2,5)
+r
+r |> row_number()
+r |> rank(ties.method = 'first') #与row_number()同
+r |> between(3,5) # 是一个逻辑向量  between(r, 3, 5)
+r |> ntile(3) #分片，是一种粗排序
+
+### 在讲完列选择后补充if_any及if_all的用法
+
+##对于行信息的显性使用
+sm |> rowid_to_column() #整型量，可以指定var = '行号'
+sm |> rownames_to_column() #字符量，可以指定var = '行号'
+
+sm1 <- sm |> rowid_to_column() 
+sm1
+sm1 |> filter(rowid >= 1, rowid <= 3)
+
+sm2 <- sm |> rownames_to_column() 
+sm2
+sm2 |> filter(rowname >= 1, rowname <= 3) #错的。计算错误。
+sm2 |> filter(rowname %in% as.character(1:3)) #需要转字符
+sm2 |> filter(as.numeric(rowname) %in% 1:3) 
+
+##抽样
+sm[sample(nrow(sm),6),] #按个数
+sm[sample(nrow(sm), round(nrow(sm)*0.1)),] #若按比例
+
+##机器学习里常用的样本分割
+pos <- sample(nrow(sm), round(nrow(sm)*0.75))
+pos
+sm[pos,] #训练集
+sm[-pos,] #测试集
+setdiff(sm, sm[pos,]) #差集，与上同
+
+##dplyr里的抽样----
+set.seed(1)
+##老模式：
+sm |> sample_n(6) #按数量
+sm |> sample_frac(0.1) #按比例
+sm |> sample_fracc(0.1, replace = T, weight = price) |> print(n = 100)
+sm |> sample_frac(0.1, replace = T, weight = price^10) 
+sm |> sample_frac(0.1, replace = T, weight = price^10) |> print(n = 100)
+### 可用下述替代（新方法）
+sm |> slice_sample(n = 6) #按数量
+sm |> slice_sample(prop =  0.1) #按比例
+sm |> slice_sample(prop =  0.1, replace = T, weight_by = price^10)
+
+##去重distinct----
+ssm <- sm |> sample_frac(0.1, replace = T, weight = price^10)
+ssm
+ssm |> distinct() #不重复记录
+###指定变量
+ssm |> distinct(cut) #输出一个变量
+ssm |> distinct(cut, .keep_all = T) #输出所有列，选每一种水平的第一条记录（样本）
+
+###多变量
+distinct(ssm, cut, color)
+distinct(ssm, cut, color, .keep_all = T)
+
+# 排列arrange
+sm |> arrange(carat) |> View() #升序排列
+sm |> arrange(-carat) #降序
+sm |> arrange(desc(carat)) #与上同
+sm |> distinct(carat) |> arrange(carat)
+sm |> distinct(carat, .keep_all = T) |> arrange(carat)
+## 多变量
+sm |> arrange(color, desc(price)) |> View()
+
+# 选择最大与最小排序的子集
+sm |> arrange(desc(x)) |> slice(1:10) -> s1
+
+sm |> slice_max(order_by = x, n = 10) #排序
+sm |> slice_max(order_by = x, prop = 0.01)
+sm |> slice_max(order_by = x, prop = 0.01, with_ties = F) -> s2
+setequal(s1,s2)
+### 相反的，筛选最小的是slice_min。与slice_max(order_by = - 变量)同
+sm |> slice_min(order_by = carat, n = 10) 
+sm |> slice_min(order_by = carat, prop = 0.01) #会保留重复值
+sm |> slice_min(order_by = carat, prop = 0.01, with_ties = F) #with_ties=F表示直接截取而不关联 
+
+# 选择列select----
+## 抽取向量
+sm |> select(cut) #tibble数据框
+sm |> pull(cut) #向量
+sm |> _$cut #与上同 sm %>% .$cut
+sm |> pull(x, color) #抽两列，多于两列会报错
+sm |> pull(x, color) |> class()
+sm |> pull(x, color) |> names()
+sm |> pull() #默认最后一列
+sm |> pull(z)
+sm |> pull(-1) #默认值-1，负号为倒数
+sm |> pull(10) #与上同
+
+##----------------选择列的方法
+sm |> select(3,8:10) #用列号
+sm |> select(color, x, y, z) #排列
+
+## 直接选或用运算符":"(连续)"!"（反选）"&"（交集）"|"（并集）“c()”(合并)等运算符
+sm |> select(color:x)
+sm |> select(-color) #负号是消除的意思
+
+as_tibble(diag(10))
+as_tibble(diag(10)) |> 
+  select(V8:V10 & V6:V9)  #取交集
+as_tibble(diag(10)) |> 
+  select(c(V8:V10 & V6:V9, V2))  #,表示或
+as_tibble(diag(10)) |> 
+  select(c(V8:V10 & V6:V9, V2) | !V2:V7) #取交集之后取反
+as_tibble(diag(10)) |> 
+  select(c(V8:V10 & V6:V9, V2) , !V2:V7) #与上同
+
+## 运用选择助手函数
+sm |> select(starts_with('c')) #以c开头的
+sm |> select(ends_with('e')) #以e结尾的
+sm |> select(contains('c')) #包含c的
+sm |> select(matches('^c')) #matches里面用正则表达式
+sm |> select(matches('e$')) 
+sm |> select(matches('c'))  #包含c的
+sm |> select(matches('[c]')) #与上同
+sm |> select(matches('cut'))
+sm |> select(matches('[cut]')) #表示抽取含c、u、t三个字母的列
+sm |> select(everything())
+sm |> select(z, x, everything()) #经常组合使用
+sm |> select(last_col()) #选最后一列
+sm |> select(last_col(), everything())
+
+
+as_tibble(diag(10)) |> 
+  select(num_range('V',3:5))
+as_tibble(diag(10)) |> 
+  select(num_range('V',c(1,3:5,9)))
+
+sm |> select(where(is.factor))
+sm |> select(where(is.numeric))
+sm |> select(where(is.integer))
+sm |> select(where(is.double)) ## 未见与is函数之外的函数连用
+
+##变量名作为字符串向量作为select参数
+vars <- c('x', 'y', 'z')
+sm |> select(vars) #会有警告提示
+#标准操作
+sm |> select(any_of(vars)) 
+sm |> select(all_of(vars)) 
+
+vars <- c('x', 'y', 'z', 'zz') #加入一个不存在的列名
+sm |> select(any_of(vars)) #会自动匹配，忽略错误
+sm |> select(all_of(vars)) #严格约束，报错
+
+
+## 补充filter的高级用法
+iris |> head(10) |> 
+  filter(if_all(starts_with('Sepal'), ~ . > 3.5)) #落入的列都需满足
+iris |> head(10) |> 
+  filter(if_any(starts_with('Sepal'), ~ . > 4.5)) #落入的列满足一条即可
+
+iris |> head(10) |> 
+  filter(Sepal.Length > 3.5 , Sepal.Width > 3.5)
+iris |> head(10) |> 
+  filter(Sepal.Length < 4.5 | Sepal.Width < 4.5)
+##-----------------以上为选择列的方法-----------------------------
+
+#rename更名----
+sm |> rename(X = x)
+sm |> rename(X = x, Y = y, Z = z) #保留包括新更名的所有列
+sm |> select(X = x, Y = y, Z = z) #只保留选取列并更名
+
+sm |> select(C = starts_with('c')) #可以用，自动命名
+sm |> rename(C = starts_with('c')) #全集
+
+# 设置列名
+set_names(1:10, ~letters[seq_along(.)]) #设置向量的名字，用法比较妙
+## 可用到数据框里
+as_tibble(diag(10)) |> set_names(str_c("xxx",1:10)) # set_names一次设置所有名字
+as_tibble(diag(10)) |> set_names(x1 = V1, x2 = V2) # 不可以，部分修改需用rename
+as_tibble(diag(10)) |> rename(x1 = V1, x2 = V2) # 可以
+
+##更一般的情况用rename_with，直接用函数
+sm |>  
+  rename_with(.cols = where(is.factor),
+              .fn = paste0, '因子')
+sm |> 
+  rename_with(.cols = where(is.numeric), 
+              .fn = paste, '数值')
+sm |>  #修改分隔符
+  rename_with(.cols = where(is.numeric), 
+              .fn = ~ paste(., '数值',sep = '_'))
+###'因子'放前面怎么做？
+sm |>  #修改分隔符
+  rename_with(.cols = where(is.numeric), 
+              .fn = ~ paste('数值',., sep = '_'))
+
+
+# 嵌套nest
+df <- tibble(x = c(1, 1, 1, 2, 2, 3), y = 1:6, z = 6:1)
+df
+nest(df, .by = x)
+nest(df, .by = y)
+nest(df, .by = c(x,y))
+df |> nest(data = c(y, z)) #用于nest的数据，与nest(df, .by = x)同
+df |> nest(data = z) #与nest(df, .by = c(x,y))同 
+
+df |> nest(.by = x, .key = "cols") #嵌套数据列命名
+
+df |> nest(data = y, .by = x) 
+df |> nest(data = everything(), .by = x) #与上一句的结构是不同的
+
+## 几种应用
+iris |>
+  nest(petal = starts_with("Petal"),
+       sepal = starts_with("Sepal"))
+iris |>
+  nest(width = contains("Width"), 
+       length = contains("Length"))
+
+mtcars |>
+  nest(.by = cyl) |>  #.by要指定好
+  mutate(models =
+           map(data, function(df)
+             lm(mpg ~ wt, data = df))) -> mt
+View(mt)
+
+
+# 创建新列----
+
+sm |> mutate(xyz = x+y+z, 
+             p_c = price/carat, 
+             n = row_number()) #默认在后
+sm |> mutate(xyz = x+y+z, 
+             p_c = price/carat, 
+             n = row_number(),.before = carat) 
+sm |> mutate(xyz = x+y+z, 
+             p_c = price/carat, 
+             n = row_number(),.after = 2) #可以是数字
+
+sm |> transmute(xyz = x+y+z, 
+                p_c = price/carat,
+                n = row_number()) #创建新列（变量），删除原有列
+
+sm |> transmute(xyz = x+y+z, 
+                p_c = price/carat,
+                n = row_number(),
+                across(where(is.factor))) #初见across。不加函数就做选择用
+
+sm |> transmute(xyz = x+y+z, 
+                p_c = price/carat,
+                n = row_number(),
+                across(where(is.factor), as.character)) #函数作用到每个列
+sm |> distinct(cut)
+
+sm |> transmute(xyz = x + y + z,
+                p_c = price / carat,
+                n = row_number(),
+                across(cut,
+                        ~ fct_recode(.,
+                          '顶级' = 'Premium',
+                          '理想' = 'Ideal',
+                          '很好' = 'Very Good',
+                          '好' = 'Good',
+                          '普通' = 'Fair'))) |> View()
+
+ 
+  ##语法类似，但across作用于列，前面if_any,if_all作用于行
+
+  ##注意：在构建新列过程中，所有之前+ - * / %% %/% 等运算以及exp log sin 等向量型函数都可以用到
+
+sm |> 
+  slice(1:10) |> 
+  select(color,price,x,y,z) |> 
+  mutate(lead_z = lead(z), diff1 = lead_z - z)
+
+sm |> 
+  slice(1:10) |> 
+  select(color,price,x,y,z) |> 
+  mutate(lag_z = lag(z), diff2 = z - lag_z)
+
+set.seed(1)
+(tb <- tibble(x = c(1,7,6,2,5)) |> slice_sample(n = 10, replace = T))
+
+tb |> mutate(dense = dense_rank(x)) #无缝排序，默认升序
+tb |> mutate(asc_dense = dense_rank(x),
+             desc_dense = dense_rank(-x)) 
+tb |> mutate(asc_min = min_rank(x), 
+             desc_min = min_rank(-x)) #取最小位排序
+tb |> mutate(asc_min = min_rank(x),
+             rank = rank(x, ties.method = 'min'),
+             desc_min = min_rank(-x))
+tb |> mutate(max_rank = rank(x, ties.method = 'max'))
+##与rank函数补充使用
+tb |> mutate(asc_percent = percent_rank(x),
+             desc_percent = percent_rank(-x))
+tibble(x = c(1:8,8:9)) |> 
+  mutate(asc_percent = percent_rank(x), 
+         desc_percent = percent_rank(-x))
+seq(0,1, length.out = 10) #percent_rank值产生的方式
+#加一个数
+tibble(x = c(1:8,8:9,10)) |> 
+  mutate(asc_percent = percent_rank(x), 
+         desc_percent = percent_rank(-x))
+seq(0,1, length.out = 11) 
+
+tb |> mutate(cumdist = cume_dist(x)) #累计分布函数
+tibble(x = c(1:8,8:9)) |> 
+  mutate(asc_percent = percent_rank(x),
+         cumdist = cume_dist(x)) #percent_rank占据0的位置，从0到1，而cum_dist是大于0的。
+
+tb |> mutate(asc_n = ntile(x, 3), desc_n = ntile(-x, 3))
+tb |> mutate(asc_first = row_number(x), 
+             rank = rank(x, ties.method = 'first'))
+tb |> filter(between(row_number(), 1, 6)) 
+  #row_number()是对应整个观察记录，与上有差别
+tb |> mutate(range = between(x, 1, 4)) #创建区间判断列
+#取反
+tb |> mutate(range = between(x, 1, 4), !(range)) 
+
+##累计计算cum*
+tb |> mutate(range = between(x, 1, 4), 
+             cumall = cumall(range)) #逻辑与，碰到第一个FALSE后全假
+tb |> mutate(range = between(x, 7, 8),
+             cumany = cumany(range)) #逻辑或，碰到第一个TRUE后全真
+
+tb |> mutate(cummax = cummax(x))
+tb |> mutate(cummin = cummin(x))
+tb |> mutate(cummean = cummean(x))
+tb |> mutate(cumprod = cumprod(x))
+tb |> mutate(cumsum = cumsum(x))
+##注意：与select中辅助函数starts_with()等不同，上述所有函数都可以单独使用
+
+### 建立新列过程中的基础功能函数
+set.seed(1)
+ssm <- sm |> slice_sample(n = 15);ssm
+
+#1. if_else
+ssm |> mutate(class = if_else(carat > 0.88, 'Big', 'Notbig')) |> 
+  select(carat, class)
+ssm |> mutate(class = if_else(carat > 0.88, 'Big', if_else(carat > 0.4, 'Medium', 'small'))) |> 
+  select(carat, class)
+#用ifelse与if_else结果相同
+ssm |> mutate(class = ifelse(carat > 0.88, 'Big', 
+                             ifelse(carat > 0.4, 'Medium', 'small'))) |> 
+  select(carat, class)
+
+#2. case_when(对ifelse的拓展)
+ssm |> mutate(class = case_when(carat > 0.88 ~ 'Big', 
+                                # 字符化
+                                 carat > 0.4 ~ 'Medium',
+                                 TRUE ~ 'Small')) |> 
+  select(carat, class)
+  #以下是新写法
+ssm |> mutate(class = case_when(carat > 0.88 ~ 'Big', # 字符化
+                                carat > 0.4 ~ 'Medium',
+                                .default = 'Small')) |> 
+  select(carat, class)  # .default就相当于最终的else
+ssm |> mutate(class = case_when(carat > 0.88 ~ 3L, # 数值化
+                                 carat > 0.4 ~ 2L,
+                                .default = 1L)) |> 
+  select(carat, class)
+ssm |> mutate(class = case_when(carat > 0.88 ~ 3, 
+                                 carat > 0.4 ~ 2,
+                                 .default = carat)) |> 
+  select(carat, class)
+# 保留原值
+
+ssm |> mutate(class = case_when(carat > 0.88 ~ 'Big', 
+                                 carat > 0.4 ~ 'Medium'))|> 
+  select(carat, class)
+# 没有匹配的做NA处理
+
+#3. case_match(向量化的switch函数，用于离散情形)
+ssm |> mutate(cut = case_match(cut,  #赋值给cut，替换原值
+                                 'Premium'~'顶级',
+                                 'Ideal'~'理想',
+                                 'Very Good'~'很好',
+                                 'Good'~'好',
+                                 'Fair'~'普通')) 
+ssm |> mutate(class = case_match(cut, #赋值给新变量class
+                                 'Premium'~'顶级',
+                                 'Ideal'~'理想',
+                                 'Very Good'~'很好',
+                                 'Good'~'好',
+                                 'Fair'~'普通')) |> 
+  select(cut, class)
+ssm |> mutate(class = case_match(cut,
+                                 'Premium'~'顶级',
+                                 'Ideal'~'理想',
+                                 'Very Good'~'很好',
+                                 c('Good','Fair') ~ '合格')) |> 
+  select(cut, class)
+  ##与下同
+ssm |> mutate(class = case_match(cut,
+                                 'Premium'~'顶级',
+                                 'Ideal'~'理想',
+                                 'Very Good'~'很好',
+                                 .default = '合格')) |> 
+  select(cut, class)
+## case_match与case_when的区别：一个用值匹配，一个用逻辑值匹配，类似于slice与filter
+## case_match与fct_recode的区别：
+  #1.一个输出普通向量，一个输出因子。
+  #2.一个用~，一个用=，左右给值正好相反
+  #3.fct_recode不能成组指定，见下面，不能用'合格' = c('Fair','Good')
+ssm |> mutate(class = fct_recode(cut,
+                                 '顶级' = 'Premium',
+                                 '理想' = 'Ideal',
+                                 '很好' = 'Very Good',
+                                 '合格' = 'Fair',
+                                 '合格' = 'Good')) |>   select(cut, class)
+  
+
+#4. 用NA替换指定值na_if()
+na_if(c(1,3,7,5,8,5), 5) 
+na_if(c('A','B','C','A'), 'A')
+na_if(c(T,T,F), F)
+
+x <- c(1, -1, 0, 10)
+100 / x
+100 / na_if(x, 0) #分母为0的处理
+
+##na_if的算法，na_if(x,y)中的y是向量化处理的
+na_if(1:5, 5:1)
+na_if(1:5, 1:5)
+na_if(1:5, 4) #等同于na_if(1:5, rep(4, 5))
+ssm |> mutate(class = na_if(cut,'Fair')) |>
+  select(cut, class)
+
+#5. 用指定值替换NA——多种方法
+
+##方法1--coalesce
+var_na <- c(1:5, NA, 5:10, NA)
+typeof(var_na) #整型
+typeof(NA) # 逻辑型
+typeof(NaN) # 双精度
+var_na <- c(1:5, NaN, 5:10, NaN)
+typeof(var_na) #双精度型
+
+coalesce(var_na, mean(var_na, na.rm = T)) 
+
+##更普遍的计算
+y <- c(1,2,NA,NA,5)
+z <- c(NA,NA,NA,6,7)
+coalesce(y,z) #y中有NA就用z中对应元素去填补，若都是NA就保留NA
+
+##用到数据框中
+ssm1 <- ssm; ssm1
+ssm1[c(1,3,9), 'x'] <- NA
+ssm1
+ssm1 |> mutate(x = coalesce(x, (y + z)/2)) |>
+  select(x,y,z) #对应行中y，z的平均值
+ssm1 |> mutate(x = coalesce(x, mean(y + z))) |>
+  select(x,y,z) #y,z两列的平均值
+##可选用：ssm1 |> rowwise() |> mutate(x = coalesce(x, mean(c(y,z)))) |> select(x,y,z)
+  ## rowwise()的作用：简单理解就是把每一行切成一个独立的组
+
+##方法2--ifelse/ifelse
+var_na <- c(1:5, NA, 5:10, NA)
+ifelse(is.na(var_na), mean(var_na, na.rm = T), var_na)
+if_else(is.na(var_na), mean(var_na, na.rm = T), var_na) 
+
+##方法3--replace_na()/tidyr中函数
+var_na <- c(1:5, NaN, 5:10, NaN)
+replace_na(var_na, mean(var_na, na.rm = T)) 
+#var_na <- c(1:5, NA, 5:10, NA) #若用这个var_na,就需用replace_na(as.numeric(var_na), mean(var_na, na.rm = T)) 
+
+##方法4--fill(前后填补)----
+fill(var_na) #报错。需接受数据框格式。
+fill(as_tibble(var_na), value, .direction = "down") #默认为down
+
+squirrels <- tibble::tribble(
+  ~group,    ~name,     ~role,     ~n_squirrels,
+  1,      "Sam",    "Observer",   NA,
+  1,     "Mara", "Scorekeeper",    8,
+  1,    "Jesse",    "Observer",   NA,
+  1,      "Tom",    "Observer",   NA,
+  2,     "Mike",    "Observer",   NA,
+  2,  "Rachael",    "Observer",   NA,
+  2,  "Sydekea", "Scorekeeper",   14,
+  2, "Gabriela",    "Observer",   NA,
+  3,  "Derrick",    "Observer",   NA,
+  3,     "Kara", "Scorekeeper",    9,
+  3,    "Emily",    "Observer",   NA,
+  3, "Danielle",    "Observer",   NA
+)
+
+squirrels |>
+  fill(n_squirrels) 
+squirrels |>
+  fill(n_squirrels, .direction = "up")
+squirrels |>
+  fill(n_squirrels, .direction = "downup")
+squirrels |>
+  fill(n_squirrels, .direction = "updown") 
+
+    ## 注意分组操作的不同（后面进一步讲group_by）
+    squirrels |>
+      group_by(group) |>
+      fill(n_squirrels, .direction = "downup")
+
+##6 删除不确定值
+squirrels |> drop_na() #有NA的行就删
+squirrels[2:3, 2] <- NA
+squirrels
+squirrels |> drop_na()
+squirrels |> drop_na(name) #指定行
+
+##6.并行运算pmin,pmax函数
+min(1:5, pi)
+pmin(1:5, pi)
+sm
+sm |> mutate(pmin = pmin(x,y,z)) |> select(x,y,z,pmin)
+#可用sm |> rowwise() |> mutate(pmin = min(x,y,z))|> select(x,y,z,pmin)
+matrix(c(1,3,6,2,-5,0),3)
+pmin(matrix(c(1,3,6,2,-5,0), 3))
+  ###规律：pmin获得相同位置的最小值，pmax类似
+pmin(matrix(c(1,3,6,2,-5,0), 3)[,1],matrix(c(1,3,6,2,-5,0), 3)[,2])
+pmin(matrix(c(1,3,6,2,-5,0), 3),3) # 将3张开成同维度的矩阵
+  ###与coalesce及na_if有共同特点，参数做向量化处理
+
+# 分组与汇总----
+## 常用统计类聚合函数：mean、median,sd、mad、IQR,min,max,quantile
+## 其他常用：位置~first()、last()、nth()；计数~n()、n_distinct();逻辑~any()、all()
+
+sm |> summarise(nrow = n()) 
+sm |> summarise(n_distinct(color))
+sm |> summarise(quantile(price, probs = 0.2))
+  # sm |> reframe(price_qt = quantile(price)) 
+  # ***返回多值时用reframe替代summarise
+
+###汇总与分组组合，才发挥出大的潜力
+
+ssm |> group_by(cut) -> gsm
+gsm |> summarise(nrow = n()) #跟下面的语句等价
+gsm |> summarise(nrow = length(x)) 
+gsm |> summarise(nrow = length(y))
+gsm |> summarise(nrow = length(z)) #此处用nrow达不到效果
+  #length对向量元素个数统计，nrow是对数组、矩阵或数据框的行进行统计
+gsm |> summarise(nr = n_distinct(color))
+gsm |> summarise(first = first(color)) #下面一样
+gsm |> summarise(nth = nth(x = color, n = 1)) #默认是按x=color的先后顺序
+gsm |> summarise(nth = nth(x = color, n = 2)) #没有做NA处理
+gsm |> summarise(nth = nth(x = color, n = 1, order_by = price)) 
+gsm |> summarise(nth = nth(x = color, n = n(), order_by = price)) #最后一位
+gsm |> summarise(nth = last(color, order_by = price))
+
+   #order_by确定顺序，x为展示的量
+gsm |> arrange(cut,table)
+gsm |> summarise(all = all(table > 56)) 
+gsm |> summarise(all = any(table > 56)) 
+
+  ## 前面quantile的语句
+gsm |> reframe(price_qt = quantile(price)) #多个汇总值返回用reframe
+
+##多个变量使用时----
+gsm |> summarise(x = mean(x), y = mean(y), z = mean(z))
+#统一处理可以用across
+gsm |> summarise(across(x:z, mean)) #单函数
+gsm |> summarise(across(x:z, list(mean,sum))) #多函数
+gsm |> summarise(across(x:z, list(mean = mean,sum = sum))) #命名
+gsm |> summarise(across(x:z, list(mean = mean,sum = sum),
+                        .names = "{.fn}_{.col}")) 
+gsm |> summarise(across(x:z, list(mean = mean,sum = sum),
+                        .names = "{.col}~{.fn}")) #{.col}指变量名,{.fn}指list中的函数名
+gsm |> summarise(across(x:z, list(mean = mean,sum = sum),
+                        .names = "列{.col}_函数{.fn}")) 
+
+## 如果有空缺值怎么办？
+gsm[1,8] <- NA
+gsm[2,9] <- NA
+gsm[8,10] <- NA
+gsm |> summarise(across(x:z, list(mean = mean,sum = sum),
+                        .names = "{.col}~{.fn}")) 
+gsm |> summarise(across(x:z, list(mean = mean,sum = sum),
+                        na.rm = T,
+                        .names = "{.col}~{.fn}")
+                 ) #直接加na.rm，但有些混乱
+  ##以下是推荐的标准写法
+gsm |> summarise(across(x:z, list(mean = \(x) mean(x, na.rm = T),
+                                  sum = \(x) sum(x, na.rm = T)),
+                        .names = "{.col}~{.fn}"))
+
+## group的特点，summarise后分组会消除，后续不再受影响
+sm |> group_by(cut, color, clarity)
+
+sm |> group_by(cut, color, clarity) |> 
+  summarise(across(x:z, mean)) |>  # clairty分组消失
+  summarise(across(x:z, sum))  |>  # color分组消失
+  summarise(across(x:z, prod)) # cut分组消失
+
+sm |> group_by(cut, color, clarity) |> 
+  summarise(across(x:z, mean), .groups = 'keep') |>  #分组不消失,后续结果就不会变化
+  summarise(across(x:z, sum), .groups = 'keep')  |> 
+  summarise(across(x:z, prod), .groups = 'keep') 
+
+sm |> group_by(cut, color, clarity) |> 
+  summarise(across(x:z, mean), .groups = 'drop') |>  #设置drop一次就全消失
+  summarise(across(x:z, sum), .groups = 'keep') #此时用keep也无效了 
+
+sm |> group_by(cut, color, clarity) |> 
+  summarise(across(x:z, mean), .groups = 'keep') |>  #分组不消失,后续结果就不会变化
+  summarise(across(x:z, sum), .groups = 'keep')  |> 
+  summarise(across(x:z, prod), .groups = 'keep') |> 
+  ungroup() #消除分组
+
+## 特殊汇总函数count----
+##若想知道cut,color两种组合的数量
+sm |> 
+  group_by(cut, color) |> 
+  summarise(n = n())
+## 两步并一步
+sm |> count(cut, color)
+sm |> count(cut, color, sort = T) #排序
+sm |> count(cut, color, sort = T, name = '数量') #命名
+
+sm |> group_by(cut, color) |> 
+  tally() #若已分组，就用tally完成计数
+
+## 拓展2点
+###1.加权用法
+df <- tribble(
+  ~name,    ~gender,   ~runs,
+  "Max",    "male",       10,
+  "Sandra", "female",      1,
+  "Susan",  "female",      4,
+  "Jack",    "male",       5
+)
+# 通常使用
+df |> count(gender)
+# count加权
+df |> count(gender, wt = runs)
+df |> group_by(gender) |> tally(wt = runs)
+
+###2.怎样在mutate中增加计数列
+sm |> 
+  add_count(cut,color) |> 
+  select(cut, color, n) |> 
+  arrange(cut,color)  
+  #排序后看得更清晰
+
+sm |> group_by(cut, color) |> #需分组
+  add_tally() |> 
+  select(cut, color, n) |> 
+  arrange(cut,color) 
+
+
+
+#------------以下为tidyr包的核心函数
+
+# 长宽表互换----
+# 1.长转宽（把列中的类转成多个列）
+fish_encounters
+fish_encounters |>
+  pivot_wider(names_from = station, values_from = seen)
+
+us_rent_income
+us_rent_income |>
+  pivot_wider(
+    names_from = variable,
+    values_from = c(estimate, moe)
+  )
+
+# 2.宽转长（把多列合并为单列中的多类）
+relig_income #宗教信仰与收入调查
+relig_income |> pivot_longer(cols = where(is.numeric), 
+                              names_to = '收入范围', values_to = '数值')
+
+billboard #2000年歌曲排行前100名
+billboard |> pivot_longer(cols = num_range('wk',1:76), 
+                           names_to = '周', 
+                           values_to = '值', 
+                           names_prefix = 'wk',
+                           values_drop_na = T, 
+                           names_transform = as.integer)
+who #世界卫生组织结核病数据
+who |> pivot_longer(
+  cols = -c(1:4),
+  names_to = c("diagnosis", "gender", "age"),
+  names_pattern = "new_?(.*)_(.)(.*)", #在列名中提取多个模式信息，存在new后没有下滑线的情况
+  values_to = "count"
+) |> View()
+
+# 单列分割----
+df <- tibble(id = 1:3, x = c("m-123", "f-455", "f-123"))
+df  
+
+df |> separate_wider_delim(x, delim = "-", names = c("gender", "unit")) #按分隔符
+df |> separate_wider_position(x, c(gender = 1, 1, unit = 3)) #按位置，未命名的直接舍去
+df |> separate_wider_regex(x, c(gender = ".", ".", unit = "\\d+")) #按正则表达式
+
+df <- tibble(var = c("race_1", "race_2", "age_bucket_1", "age_bucket_2"))
+df  
+
+df |> separate_wider_delim(var, "_", names = c("var1", "var2"), too_many = "merge")#多出的合并
+df |> separate_wider_delim(var, "_", names = c("var1", "var2"), too_many = "drop") #多出的丢弃
+df |> separate_wider_regex(var,  patterns = c(var1 = ".*?","_",var2 = "\\d*")) 
+#".*?"表示从当前位置开始，尝试匹配最短的字符串，直到满足后续的正则表达式（这里是"\\d*"）
+
+# 从各种组合中创建数据框  
+expand_grid(x = 1:3, y = 1:2)
+expand_grid(l1 = letters, l2 = LETTERS)
+expand_grid(df = tibble(x = 1:2, y = c(2, 1)), z = 1:3)
+expand_grid(x1 = matrix(1:4, nrow = 2), x2 = matrix(5:8, nrow = 2))
+
+## enframe与deframe（向量/列表与两列数据框的互转）
+a <- 1: 10
+names(a) <- letters[seq_along(a)]
+enframe(a)
+a <- enframe(a,name = '名称', value = '值')
+a
+deframe(a)
+enframe(list(one = 1, two = 2:3, three = 4:6)) #注意结构
+
+deframe(tibble(a = letters[1:3], b = 1:3)) 

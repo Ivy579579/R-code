@@ -1,0 +1,334 @@
+
+#问题：在[1,50]中产生一个3行4列2组的3维数组，并分别确定各元素在全体及矩阵各行、各列中的排名（按升序），并保留原结构，组合成一个更高维度的数组。
+set.seed(1)
+
+a1 <- array(sample(1:50, 24), c(3,4,2));a1
+
+## 按整体
+r <- rank(a1);r
+
+## 按行确定排名
+rRow <- apply(a1, c(1,3), rank); rRow
+t(rRow[,,1])
+t(rRow[,,2])
+c(t(rRow[,,1]),t(rRow[,,2]))
+rRow <- array(c(t(rRow[,,1]),t(rRow[,,2])), c(3,4,2));rRow
+
+## 按列确定排名
+rCol <- apply(a1, c(2,3), rank);rCol #（命名，形式（对整体按照一定方式切割），函数（按照一定格式对切割后数据进行计算））
+
+# 组合
+c(a1, r, rRow, rCol)
+comb <- array(c(a1, r, rRow, rCol), c(3,4,2,4))
+# 命名
+dimnames(comb) <- list(NULL,NULL, c('矩阵1','矩阵2'), c('原始','按整体','按行','按列'));comb
+
+comb <- array(c(a1, r, rRow, rCol),
+              c(3,4,2,4), 
+              list(NULL,NULL,c('矩阵1','矩阵2'), c('原始','按整体','按行','按列')))#与上同
+comb
+
+# 矩阵
+m <- 1:20;m
+dim(m) <- c(4,5);m # 将4行5列的结构赋予m，按列填充
+dim(m) <- c(5,4);m # 将5行4列的结构赋予m
+
+#行列分别命名
+colnames(m) <- LETTERS[1:4];m # 将列命名，大写的字母按顺序4个
+rownames(m) <- letters[1:5];m # 将行命名，小写的字母按顺序4个
+#整体命名
+dimnames(m) <- list(letters[1:5],LETTERS[1:4]);m # 分别命名列和行，然后一起命名
+
+#完整定义
+m <- matrix(data = 1:20, nrow = 4, ncol = 5, 
+            dimnames = list(letters[1:4],LETTERS[1:5])) # 将以上命令合并使用
+m
+matrix(data = 1:20, nrow = 4)
+matrix(data = 1:20, ncol = 4) # 行列定义一个参数就可以
+matrix(1:20,4) #4行
+matrix(1:20,,4) #4列，中间的逗号不能缺少
+matrix(1:10,c(2,5)) # 不可取的写法，只选取第一个元素
+matrix(1:10,c(2,2))
+matrix(data = 1:20, ncol = 4, byrow = T) #byrow控制元素的排列方式，即先横向排列
+
+#用追加函数构建矩阵
+cbind(c(1,2,3),c(8,9,10)) #，将两列向量整合到一起，列追加
+class(c(1,2,3))
+class(cbind(c(1,2,3),c(8,9,10)))
+rbind(c(1,2,3),c(8,9,10)) #行追加
+rbind(c(1,2),c(8,9,10,11)) #整数倍会自动重复
+
+# 矩阵子集引用
+m <- matrix(data = 1:20, ncol = 4, byrow = T) 
+m
+m[1] #一维下标
+m[10] # 从最开始按列数第10个位置的数
+m[2,3] #二维下标
+m[1,] #与m[1,1:4]等价，表示第一行所有元素
+m[,1] # 第1列所有元素
+class(m[1,])
+class(m[,1]) #向量
+class(m) #矩阵
+m[1:2,] # 前两行
+class(m[1:2,]) #矩阵
+m[c(1,3),c(4,2)] #间隔选取
+m[-1,] #排除选取，即减去
+m[-1, c(-2, -4)] #减去第1行和第2-4列
+m[-1, -c(2,4)] #与前同
+m[-1:3,] #错误
+m[-1:-3,] # 删去1-3行
+m[-(1:3),] #与前同
+
+m <- matrix(data = 1:20, nrow = 4, ncol = 5, 
+            dimnames = list(letters[1:4],LETTERS[1:5]));m
+m['a',] # 显示a行的数值
+m['a','B'] 
+m['a':'c',] #错误
+m[c('a','b','c'),]
+m[c('a','b','c'),c('E','A')]
+
+m > 10 #与m同结构的逻辑值矩阵，即对应位置的值是否满足条件
+m[m > 10] #向量，提取满足条件的位置值
+class(m[m > 10])
+
+#问题：将m矩阵中[10,16]之间的数值改为99
+m[m >= 10 & m <= 16] <- 99;m #先用逻辑值确定，然后赋值，最后保持m形状，如果不对筛选出的元素重新赋值，则m矩阵降维
+
+m[1,]
+class(m[1,])
+m[1,, drop = F]
+class(m[1,, drop = F]) #避免降维，保存原结构
+class(m[m > 10, drop = F]) # 无法在条件定位后保持结构
+
+#几个重要的矩阵函数
+dim(m) #2个元素的向量，可修改
+dim(m) <- c(5,4);m
+nrow(m) #统计行数，不能修改
+ncol(m) #统计列数，不能修改
+dimnames(m) #可修改
+
+# 矩阵相关计算
+m <- matrix(1:20,4)
+m
+t(m) #转置
+diag(6) #单位阵
+diag(c(3,7,9,2)) #将向量化成单位阵
+m <- matrix(1:16,4);m
+diag(m) #提取m矩阵对角线上的元素
+diag(diag(m)) #用提取的元素构建新的对角阵
+#m如果不是方阵,从最大方阵子集中抽取
+diag(matrix(1:20,4)) #矩阵是1-20数字排列的4行
+diag(matrix(1:20,5))
+
+m <- matrix(runif(25,0,10),5);m #随机发生
+m * m
+m %*% m #不同型矩阵乘法
+solve(m) #逆矩阵
+m %*% solve(m)
+solve(m, c(1,2,3,4,5)) #解线性方程组
+m %*% solve(m, c(1,2,3,4,5)) #验证
+
+eigen(m) #求特征值及特征向量，是list结构
+class(eigen(m))
+
+det(m) # 求行列式
+
+#控制语句if函数
+
+a <- 1
+if(a == 1) b <- 3
+
+a <- 1
+if(a != 1) b <- 2 else b <- 20
+
+a <- 2
+if(a != 1){
+  b <- 3
+  c <- 4
+  d <- 5
+} else {   #else前要有内容，一般是“}”
+  b <- 30
+  c <- 40
+  d <- 50
+}
+
+
+{
+  if (a != 1) {
+    b <- 3
+    c <- 4
+    d <- 5
+  }
+  else {
+    b <- 30
+    c <- 40
+    d <- 50
+  }
+} #把整个语句置于花括号中，可以解除对else的限制
+
+## 对变量c进行赋值，当a变量值在[1, 5)时取'A', [5,10)取'B',[10,15)取'C'，其余取'D'
+
+a <- 111
+if (a >= 1 & a < 5){
+  c <- 'A'
+} else if (a >= 5 & a < 10){
+  c <- 'B'
+} else if (a >= 10 & a < 15){
+  c <- 'c'
+} else
+  c <- 'D'
+
+##ifelse
+ifelse(1:6 %in% c(3,6,1), 'A', 'B')
+ifelse(1:6 %in% c(3,6,1), 10, 100)
+ifelse(1:6 %in% c(3,6,1), T, F)
+ifelse(1:6 %in% c(3,6,1), F, T) #意味着可以选择输出的类型与输出值
+###可以修改原有的值
+a <- 1:6
+ifelse(a %in% c(3,6,1), a^2, sqrt(a))
+
+# 列表list
+
+l1 <- list(1, '2', T, 3); l1
+(l1_1 <- list(c(1, '2', T, 3)))
+class(l1)
+class(l1_1)
+str(l1)
+str(l1_1)
+
+l2 <- c(l1, '5', 5, 'c');l2 #同维度拓展
+str(l3)
+l3 <- list(l1, '5', 5, 'c');l3 #有递阶结构
+##求l3里l1中所有元素的和
+l3[1] #两层，l3有两层，第二层有4个
+class(l3[1])
+l3[[1]] #一层
+class(l3[[1]])
+###1.
+class(l3[[1]][1])
+l3[[1]][[1]] + l3[[1]][[4]]
+l3[[1]][[1]] + as.numeric(l3[[1]][[2]]) + l3[[1]][[3]] + l3[[1]][[4]]
+###2.
+l3[[1]]
+as.numeric(l3[[1]])
+sum(as.numeric(l3[[1]]))
+###3.unlist(对这个问题解答有缺陷)
+unlist(l3)
+unlist(l3)[1:4]
+as.numeric(unlist(l3)[1:4]) #字符型的TRUE无法转化为1
+
+###补充解答
+ul <- unlist(l3)[1:4]
+sum(as.numeric(ifelse(ul == 'TRUE', '1', ul))) #嵌套方式
+
+
+##构造一个列表：需要分别包含向量、矩阵、三维数组、数据框及列表等元素
+l4 <- list(vector = 1:5, 
+           matrix = matrix(runif(20), 4),
+           array = array(sample(100, 24,),c(4,3,2)),
+           dataframe = data.frame(name = LETTERS[1:10], 
+                                  grade = sample(60:100, 10)))
+l4
+
+l4$vector
+class(l4$vector)
+l4[1]
+class(l4[1])
+l4[[1]] # 与.$vector同，运算符$与[[]]相当
+
+l4$matrix
+l4$matrix[2,3]
+l4$matrix[2:4,3:5]
+
+l4$array
+dimnames(l4$array) <- list(letters[1:4], LETTERS[1:3], c('X', 'Y'))
+l4$array
+
+l4$dataframe
+l4$dataframe$grade
+###在数据框里加一列
+l4$dataframe$sex <- sample(c('F','M'), 10, r = T)
+l4$dataframe
+
+##列表元素追加
+###1.
+names(l4)
+l4[[5]] <- l1
+names(l4) #第5个元素没有名字
+names(l4)[5] <- 'list1' #给第5个元素命名为list1
+names(l4)
+l4
+###2.
+l4$list2 <- l2 #追加并同时命名
+names(l4)
+
+# apply函数(分组操作)
+set.seed(1)
+m <- matrix(runif(20, 1, 10), 4); m
+
+order(m)
+rank(m)
+sort(m)
+# 以上是全体元素进行的
+
+apply(X = m,MARGIN = 1,FUN = order) #按行排位
+apply(m,2,order) #按列排位
+
+m
+apply(m,1,sort) #按行
+apply(m,2,sort) #按列，不改变原结构
+
+#-------
+apply(m,1,mean)
+mean(m[2,])
+mean(m[4,])
+apply(m,2,mean)
+#mean,sum,var等为聚合函数
+
+## 对于数组
+set.seed(1)
+(a <- array(sample(1:20,size = 24, r = T), c(3,4,2)))
+apply(a, 1, mean) # 对所有的第一行进行计算
+mean(a[1,,])
+mean(a[3,,])
+apply(a, 2, mean) # 对所有的第一列进行计算
+mean(a[,1,])
+apply(a, 3, mean) # 对各组矩阵求平均值
+mean(a[,,1])
+mean(a) # 对全体
+
+### 更复杂的情况
+apply(a, MARGIN = c(1,2), mean) #按行、列切
+apply(a, MARGIN = c(2,1), mean) #按列、行切；跟上面的结果相同，输出的顺序不同
+apply(a, MARGIN = c(1,3), mean) #按行、组切
+### 其他的2维组合大家去尝试
+apply(a,c(1,2,3),mean) #不变
+apply(a,c(3,2,1),mean) #重排信息，先切组（形成2行），再切列（形成4列），再切行（形成2组）
+#归纳：对于聚合函数而言，MARGIN的参数选用的行列组维度，决定了输出的行列组维度。
+
+### 更高维的实例
+Titanic
+View(Titanic) #查看表格内容，v必须大写
+apply(Titanic,c('Sex','Survived'),sum)
+apply(Titanic,c(2,4),sum)
+apply(Titanic,c('Class','Survived','Sex'),sum)
+
+
+# 排序函数
+a
+apply(a,1,sort) #不同于聚合类函数，每切分出的组有8个数据
+apply(a,c(1,3),sort) #按行分矩阵（组）重排
+apply(a,c(2,3),sort) #按列分矩阵（组）重排，保持结构不变
+
+#默认都是升序，降序怎么做？
+### 方法1：加参数
+apply(a, c(2,3), sort, decreasing = T)
+apply(a, c(2,3), sort(decreasing = T)) # 不可以
+
+### 方法2:构建新函数
+apply(a, c(2,3), FUN = function(x) sort(x, decreasing = T))
+
+
+table(sex = c('F', 'M', 'M'), origin = c('H','J','L'), education = c('B','M','D')) -> table 
+# 三个变量构成三维的表
+View(table)

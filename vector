@@ -1,0 +1,378 @@
+# 向量的构建与基本引用
+v <- c(1,2,3)
+v
+v <- c(1,2,3);v
+(v <- c(1,2,3))
+v1 <- c(1,'2',3) # combine为字符型
+v2 <- c(5,6,v1);v2 #v2还是字符型
+length(v) #v的维度是多少
+length(v2)
+
+names(v) <- c('A','B','C');v   #事后命名
+v3 <- c(A = 1,B = 2,C =3);v3   #事前命名
+v3 <- c('A' = 1,'B' = 2,'C' =3);v3 
+
+v2
+v2[1] #显示第一位数
+v2[3:5] #显示第3-5位数
+v2[c(1,3,5)] #显示第1.3.5位数
+v2[-4] #排除第四个数
+v2[c(5,3,1)] 
+v3['C']
+v3[c('A','C')]
+
+# 变量的赋值与管理
+a = 1
+a <- 2  #alt + -   快捷键
+a <<- 3
+4 -> a
+5 ->> a
+b <- c <- d <- 6
+#b,c,d <- 7  # 不可取，错误的方式
+7 -> b -> c -> d
+
+rm(d)
+ls()
+ls.str()
+.ab <- 20
+ls(all.names = T)
+
+rm(list = ls())
+rm(list = ls(all.names = T)) # 清空所有变量
+
+# 数据类型
+
+## 数值型
+a <- 1
+class(a)
+b <- 1L
+class(b)
+class(a + b)
+is.numeric(a)
+is.integer(a)
+is.integer(b)
+is.numeric(b)
+c <- 0L
+
+## 字符型
+d <- 'world'
+nchar(d)
+class(d)
+is.character(d)
+
+### 因子型
+f1 <- factor(d)
+f2 <- factor(c(5,1,1,2,2,1:3))
+class(f2)
+str(f2)
+
+## 日期型
+date1 <- as.Date('2020-5-1')
+as.numeric(date1)
+# 1970-1-1
+as.numeric(as.Date('1970-1-1')) # 按天
+
+date2 <- as.POSIXct('2020-5-1 12:10:56')
+date3 <- as.POSIXlt('2020-5-1 12:10:56')
+weekdays(date3)
+
+as.numeric(date2) #按秒
+
+as.numeric(as.POSIXct('1970-1-1 8:00')) #起始点
+
+
+## 逻辑型
+f <- TRUE
+f <- T
+f <- FALSE
+f <- F
+T
+T <- 2
+T
+a + T
+T
+mean(c(T,3)) # T作为变量使用 会跟 TRUE的缩写 造成混淆
+
+
+is.logical(f)
+
+a <- 1; b <- 2; c <- 3
+a < b
+a <= c 
+a > c
+a == 1
+a == b
+a != b
+
+'ab' < 'b'
+'a' < '啊'
+'啊' < 'a'
+
+nchar('ab') > nchar('world')
+
+# 序列数据的发生
+1:10 #输入1-10的序列
+10:1
+10:-10
+seq(from = 1, to = 10, by = 1) #等间隔的发生，按顺序输入，by是步长
+seq(from = 1, to = 10, by = 4)
+seq(1,10,4) #以上命令的缩写，缩写不能换以上的顺序
+seq(1,10,length.out = 50) #length.out为长度，即多少个数，1-10等间隔抽50个数
+seq(1,10,,50) #上一句缩写，by的位置没有命令需要空出来
+seq(10,1,length.out = 50)
+seq(to =  100, from = 50, length.out = 20)
+seq(length.out = 20,to =  100, from = 50)
+seq(le = 20, t = 100, f = 50) #参数的简略写法
+seq(1,10,along.with = c(1,100,20)) #生成的参数跟随along with中序列的形式
+
+rep(1:4,3) #1-4重复3次
+rep(1:4,c(1,2,3,4)) #按照向量形式重复，第一个数重复一次，第二个数重复2次，...，向量的维度要与前面的维度一致
+rep(1:4,each = 3) #每个数重复3次
+rep(1:4,each = 2, times = 3)
+rep(1:4,each = 3, length.out = 10)
+#times可以取标量也可以取向量，each只能取标量，each相当于times特例
+
+letters #内置的小写字母
+LETTERS #内置的大写字母
+LETTERS[1:5]
+# rep(letters[1:5], c(1,2,3,4,5), times = 3) #错误的写法
+rep(rep(letters[1:5], c(1,2,3,4,5)),times = 3) #小写a-e，分别重复1-5次，整体再重复3次
+
+
+#循环迭代：for与while
+for循环是有限次的，指定次数
+while循环不知道循环多少次，最后收敛到一定区域
+for(i in 1:5) print(i)
+i
+for(i in 1:5) i #变量不打印
+
+for(i in 1:10){
+  cat(i, '的平方是：', i^2, '\n')
+}
+
+print(1:5) #适合调试和展示R对象（如数据框、列表）。可赋值。直接输出转义符。
+cat(1:5) #拼接打印。适合生成格式化文本（如日志、报告）。解析转义符。
+
+for(i in LETTERS){
+  cat(i, '重复3次为：', rep(i, 3), '\n')
+}
+##消除空隙
+for(i in LETTERS){
+  cat(i, '重复3次为：', paste(rep(i, 3), collapse = ''), '\n')
+}
+
+##依次取出iris中的各列
+###1.
+for(i in 1:length(iris)) #与seq_along等价
+  print(iris[,i])
+
+###2.
+for(i in seq_along(iris)) #seq_along产生的是一个序列
+  print(iris[,i])
+
+###3.最简洁的方法
+for(i in iris)
+  print(i)
+##总结：for中的循环变量可以取对象
+
+for(i in list(1:10, matrix(1:10, 5), array(1:24, c(3,4,2)), head(iris,5)))
+  print(i) #list最小单元是列
+
+##向量，矩阵以及数组中的元素是挨个取出的
+for(i in array(1:24, c(3,4,2))) print(i) #array最小单元是数
+
+##next与break的使用
+for(i in 1:10){
+  print(i)
+}
+
+for(i in 1:10){
+  if(i == 4) next #跳到下一个循环
+  print(i)
+}
+
+for(i in 1:10){
+  if(i == 4) break  #结束循环
+  print(i)
+}
+
+#while循环
+
+i <- 1 #1.确定循环变量初始值
+while(i < 10){
+  cat(i, '的平方：', i^2, '\n')
+  i <- i + 1 #2.更新循环变量
+}
+
+##在程序中跳出
+i <- 1
+while(T){
+  cat(i, '的平方：', i^2, '\n')
+  i <- i + 1
+  if(i >= 10) break
+}
+
+##跳过4
+i <- 1
+while(T){
+  if(i == 4){
+    i <- i + 1
+    next
+  }
+  cat(i, '的平方：', i^2, '\n')
+  i <- i + 1
+  if(i >= 10) break
+}
+
+while(T) print(1) #死循环，会一直进行直到内存占满，可用stop按钮手动停止
+
+
+##关于循环
+
+##1. for & while 不简洁、效率不高，基础而灵活
+##2. apply函数族
+
+# apply(array, margin, ...)
+# lapply(list, function)
+lapply(list(1:5,10:50,51:150),quantile, prob = c(0.25,0.75))
+# sapply(list, function)
+sapply(list(1:5,10:50,51:150),quantile, prob = c(0.25,0.75))
+# mapply(function, ...) ，将函数用于多列（向量、列表），是sapply的多元化
+mapply(function(x,y,z) x*y^2-z, c(1,2), c(5,6),c(1,10)) #三个向量依次对应xyz的取值
+mapply(function(x,y,z) x*y^2-z, iris[1], iris[2], iris[3]) 
+
+ #思考下面的语句作用
+mapply(
+  function (string, x, y, z)
+    rep(
+      x = string,
+      each = x,
+      times = y,
+      len = z
+    ),
+  string = list(c('a', 'b'), c('d', 'e', 'f'), c('x', 'y', 'z', 'w')),
+  x =c(2, 3, 4),
+  y = c(4, 3, 2),
+  z = c(5, 10, 15)
+) #前面设定每个发生次数，循环次数，截断次数，后面用向量对应每次取的数值
+
+
+##3. map函数族(purrr包)
+library(purrr) #或library(tidyverse)
+map(c(1,3,8), \(x) x) 
+map(list(c(1,3,8),1:10,100:150), function(x) x)
+
+mtc <- head(mtcars,10)
+mtcars['Mazda RX4',]
+rn_mtc <- rownames(mtc)
+
+map(rn_mtc[3:5], function(x) mtc[x,]) # 构建函数function
+map(rn_mtc[3:5], \(x) mtc[x,]) # 简化写法
+map(rn_mtc[3:5], ~ mtc[.,]) # ~是purrr中匿名函数的用法，效果同上
+map(3:5, ~mtc[.,]) #上面是用名称定位，也可用数字定位
+map(3:5, ~mtc[.x,]) # .x与. 同
+
+map(3:5, ~ mtc[]) # 重复发生length(3:5)遍
+map(3:5, ~ mtc[.]) # 每列输出，比较map(3:5, ~ mtc[[.]]的区别) 
+map(list('disp','hp','drat'), ~mtc[,.]) #可以用名称，与上结果不同，为什么？
+map(list('disp','hp','drat'), ~mtc[.]) #这样就保留数据框结构了
+  #以上list('disp','hp','drat')与c('disp','hp','drat')一样
+
+map_if(iris, is.numeric, mean, .else = length) #不能求均值的用总数来求
+map_at(iris, c(1,3), quantile, prob = c(0.25, 0.5, 0.75)) #在某一列进行操作
+map_at(iris, c('Sepal.Length','Petal.Length'), quantile, prob = c(0.25, 0.5, 0.75)) #与上同
+map_at(iris, c(T,F,T,F,F), quantile, prob = c(0.25, 0.5, 0.75)) #与上同
+##map_if、map_at对部分进行处理，输出保留对象的全结构，map会实现抽取
+
+mtcars |> split(f = mtcars$cyl)  |>  #“|>”管道操作，将一个值从一个函数映射到另一个函数 
+  map(.f = function(df) lm(mpg ~ wt, data = df)) |> 
+  map(summary) |> #map('residuals')
+  map_dbl('r.squared')# 向量
+  #map('r.squared') #list
+
+map(list(a = 1:3, b = 10:13, c = 100:130), 'a')
+map(list(list(a = 1:3, b = 10:13, c = 100:130)), 'a')
+map_depth(list(list(a = 1:3, b = 10:13, c = 100:130)), 'a', .depth = 1)
+map_depth(list(a = 1:3, b = 10:13, c = 100:130), 'a', .depth = 0)
+
+View(list(a = 1:3, b = 11:13, c = 100:130))
+
+### 两个参数情形
+map2(3:5,list(1:2,2:3,3:4), ~mtc[.x,.y])
+map2(.x = 1:3, .y = 11:13, paste)
+map2(.x = 1:3, .y = 11:13, paste, sep = '_')
+map2(.x = 1:3, .y = 11:13, ~ paste(.x,.y,sep = '_'))
+map2(.x = 1:3, .y = 11:13, ~ paste(..1,..2,sep = '_'))
+map2(.x = 1:3, .y = 11:13, \(x,y) paste(x,y,sep = '_'))
+map2_df(3:5,list(1:2,2:3,3:4), ~mtc[.x,.y]) #转为data.frame，该函数不建议继续使用
+map2(3:5,list(1:2,2:3,3:4), ~mtc[.x,.y]) |> list_rbind() #推荐使用
+
+  #若用mapply，需这样使用mapply(function(.x,.y) mtc[.x,.y], 3:5,list(1:2,2:3,3:4))
+  #并且结果不尽相同
+
+### 多参数情形，需整理成list或data.frame
+### rnorm(n,mean, sd) 一次性发送多种参数的随机数
+###情形1
+args <- list(n = c(10,20,30),
+             sd = c(100, 50, 10),
+             mean = c(-10, 0, 10))
+
+pmap(args, rnorm)
+
+###情形2
+args1 <- list(n1 = c(10,20,30),
+             sd = c(100, 50, 10),
+             mean = c(-10, 0, 10))
+
+pmap(args1, rnorm) #不可以
+pmap(args1, ~rnorm(n = ..1, mean = ..3, sd = ..2))
+pmap(args1, ~rnorm(..1, ..3, ..2))
+
+###情形3
+args2 <- list(n = c(10,20,30),
+              sd = c(100, 50, 10),
+              mean = c(-10, 0, 10),
+              var = 1000) #多一个量
+pmap(args2, \(n, sd, mean)
+     rnorm(n = n, sd = sd, mean = mean)) #不可以
+
+pmap(args2, \(n, sd, mean,...)
+     rnorm(n = n, sd = sd, mean = mean)) # 加...就可以了
+
+pmap(mtc, .f = ~ disp*hp*drat) #不行，不识别公式里的变量
+pmap(mtc[3:5], .f = ~ disp*hp*drat) #也不行
+pmap(mtc[3:5], .f = ~ ..1*..2*..3) #这样可以
+pmap(mtc, .f = function(disp,hp,drat) disp*hp*drat) #不行
+pmap(mtc, .f = function(disp,hp,drat,...) disp*hp*drat) #加入...,这样可以
+pmap(mtc[3:5], .f = function(disp,hp,drat) disp*hp*drat) #或限定列
+
+
+##批量读入数据
+list.dirs('./') #列举文件夹，点的位置放文件夹名
+getwd() #找到文件夹的位置
+files <- list.files('./datasets/')
+files[1:3]
+##1. readr中
+readr::read_csv(paste0('./datasets/',files[1:3])) #一次读多个
+  ##write_csv
+##2.data.table中
+data.table::fread(paste0('./datasets/',files[1])) #一次读一个
+  ##fwrite
+##3. vroom中——只针对分隔符数据文档,csv,tsv...
+vroom::vroom(paste0('./datasets/',files[1:3])) #能读多个
+  ##vroom_write
+##4. rio中——万能工具包，用的最佳包，rinput routput
+rio::import(paste0('./datasets/',files[1])) #一次读一个
+rio::export(list(a = iris, b = mtcars), './data.xlsx')
+rio::export_list(list(a = iris, b = mtcars),
+                 c('file1.csv','data.xlsx'))
+
+
+data <- 
+  map(paste0('./datasets/',files[1:9]),
+      vroom::vroom)
+data <- data |> list_rbind()
+
+data |> vroom::vroom_write('rawdata.csv') #集中输出文档
+
+
